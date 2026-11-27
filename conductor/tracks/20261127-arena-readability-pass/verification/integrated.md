@@ -257,3 +257,13 @@ clip, landscape 39/37 HUD line-box delta without visible clipping, and no clean
 desktop/portrait all-four-corner still (projection proof plus partial visuals).
 These do not reverse the corrected settled-action separation, full HUD names,
 or improved arena contrast.
+
+## Doc sync
+
+- `conductor/tech-stack.md` records the measured height/radius feed, tracked
+  action framing, separate establishing shot, reduced-motion exception, arena
+  contrast retune, and full-name HUD layout.
+- `conductor/product.md`, `conductor/product-guidelines.md`, and
+  `conductor/workflow.md` need no change: the owner's framing decision and
+  presentation-only freeze are already captured in the approved spec.
+- RM-14 remains linked until the completion commit retires it.

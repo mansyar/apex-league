@@ -425,6 +425,25 @@
   852×393; the pre-existing internally-scrolling spar setup sizing is
   unchanged.*
 
+- *2026-11-27 — Arena readability pass (track
+  `20261127-arena-readability-pass`): `roster.ts` now records each cast rig's
+  measured `bodyHeight` and `bodyRadius` after the frozen footprint
+  normalization. Those values flow through staging/director/rig into
+  `trackedActionFraming`, which solves a telephoto action shot from whole-body
+  footprint corners, preserves the measured-height 8% / 32 CSS-pixel rest floor,
+  and searches bounded three-quarter azimuths to keep both silhouettes distinct.
+  A separate wide establishing shot owns the all-arena-corners requirement;
+  reduced motion intentionally stays on that stable wide shot rather than the
+  action-shot size floor. Cinematic multipliers remain widening-only. Arena-only
+  floor/stand/lighting/fog values were retuned for contrast and
+  `.battle-hud-name` now wraps/shrinks full names instead of ellipsis. Simulation
+  coordinates, legal bounds, fighter scale, ranch lighting/post-processing,
+  audio, voxel/determinism, save/state, dependencies and generated files remain
+  frozen. Desktop/portrait/landscape captures, an exhaustive 252,000-projection
+  containment probe and the short PR GIF document the result; the first desktop
+  broadcast transition frame before camera settling and landscape HUD line-box
+  metric remain recorded visual findings.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed
