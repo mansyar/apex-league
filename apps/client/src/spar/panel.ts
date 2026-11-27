@@ -51,6 +51,12 @@ export interface SparPanelSetupRefs extends SparPanelRefs {
   rule: () => RuleId | null
   /** The rules row's buttons, for the footer readout and tests. */
   ruleButtons: ChoiceButton<RuleChoice>[]
+  /** The sticky footer holding the summary and the one launch control. */
+  startFooter: HTMLElement
+  startSummary: HTMLElement
+  startButton: HTMLButtonElement
+  /** Re-name the armed tactic / note after a fresh setup re-arms Press. */
+  syncStartFooter: () => void
 }
 
 /** Build the spar's DOM and hand back its writable surfaces. */
@@ -126,6 +132,28 @@ export function buildSparPanel(
   resetPill.textContent = "Reset kit"
   loadoutRow.append(loadoutLabel, kitStrip, resetPill, kitHint)
 
+  // Sticky Start footer (FR-3): a plain summary of the armed tactic and the
+  // active note, plus the only control that launches a bout. Row picks arm
+  // only, so the summary is re-named from the seam's live reads on every tap.
+  const startSummary = document.createElement("span")
+  startSummary.className = "spar-start-summary"
+  const startButton = document.createElement("button")
+  startButton.className = "spar-start kit-chip is-accent"
+  startButton.type = "button"
+  startButton.textContent = "Start bout"
+  startButton.addEventListener("click", () => seam.launch())
+  const startFooter = document.createElement("div")
+  startFooter.className = "spar-start-footer"
+  startFooter.append(startSummary, startButton)
+
+  const refreshStartFooter = (): void => {
+    const rule = seam.rule()
+    startSummary.textContent = `${DOCTRINE_LABELS[seam.armed()]} · ${
+      rule === null ? "No note" : RULE_LABELS[rule]
+    }`
+  }
+  refreshStartFooter()
+
   const { row: tactics, buttons: doctrineButtons } = buildDoctrineRow({
     rowClass: "spar-tactics",
     describe: (doctrine) => ({
@@ -139,7 +167,10 @@ export function buildSparPanel(
     // fight starts from the launch seam, never from a tactic tap.
     classes: { base: "spar-tactic kit-line", on: "on" },
     initialOn: "press",
-    onPick: (doctrine) => seam.arm(doctrine),
+    onPick: (doctrine) => {
+      seam.arm(doctrine)
+      refreshStartFooter()
+    },
   })
 
   // The coach's note (FR-13): exactly one rule, or none. The row is a plain
@@ -153,7 +184,10 @@ export function buildSparPanel(
     }),
     classes: { base: "spar-rule kit-line", on: "on" },
     initialOn: "none",
-    onPick: (rule) => seam.pickRule(rule === "none" ? null : rule),
+    onPick: (rule) => {
+      seam.pickRule(rule === "none" ? null : rule)
+      refreshStartFooter()
+    },
   })
 
   const fastButton = document.createElement("button")
@@ -211,6 +245,7 @@ export function buildSparPanel(
     loadoutRow,
     tactics,
     rules,
+    startFooter,
   )
   overlay.append(panel)
 
@@ -250,6 +285,10 @@ export function buildSparPanel(
     panelClose,
     chips,
     ruleButtons,
+    startFooter,
+    startSummary,
+    startButton,
+    syncStartFooter: refreshStartFooter,
     launch: seam.launch,
     armed: seam.armed,
     rule: seam.rule,

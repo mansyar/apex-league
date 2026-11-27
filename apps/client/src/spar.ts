@@ -73,6 +73,7 @@ export function createSpar(
     close,
     panelClose,
     chips,
+    syncStartFooter,
   } = refs
 
   // Broadcast HUD riding the overlay's margins (Phase D): created after
@@ -195,6 +196,9 @@ export function createSpar(
     // a tactic armed in an earlier bout never leaks: Press is lit again.
     armedDoctrine = "press"
     markArmedTactic(refs, "press")
+    // The chip and ghost routes share this path: re-name the footer so it
+    // cannot show a previous bout's tactic over a freshly armed Press.
+    syncStartFooter()
 
     intro.textContent = introLine
     log.replaceChildren()
