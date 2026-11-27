@@ -106,7 +106,7 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3, F4, FR-1, FR-2, FR-4, FR-6, FR-7, AC-1, AC-2, AC-3, AC-6, AC-7
 - **Touches:** `apps/client/src/camera/rig.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-R1.md`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts` plus `bun run verify && bun run build` and real-browser lifecycle/cup-cinematic/establishing proof at `1440×900`, `393×852`, and `852×393`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **R1.T1: Make camera lifecycle containment-safe and reduced motion readable** — covers: F1, F2
   - [ ] **R1.T1.1:** Add failing-first live-rig tests from `setMode("arena")` that check whole-body containment on the first and every transition update for broadcast and cinematic, without skipping early frames.
