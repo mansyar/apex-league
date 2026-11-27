@@ -25,6 +25,9 @@ export interface DirectorFrame {
     readonly y: number
     readonly z: number
   } | null
+  /** Rendered rig heights from the cast (world units). */
+  readonly heightA: number
+  readonly heightB: number
 }
 
 /**
@@ -64,6 +67,8 @@ export function createDirectorFeed(): (frame: DirectorFrame) => void {
     ctx.actor = frame.actor
     ctx.target = frame.target
     ctx.projectile = frame.projectile
+    ctx.heightA = frame.heightA
+    ctx.heightB = frame.heightB
     frame.handler(ctx)
   }
 }

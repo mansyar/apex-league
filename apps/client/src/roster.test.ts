@@ -76,3 +76,35 @@ describe("buildSpot stage profile (FR-1, AC-1)", () => {
     expect(rival.smooth.toArray()).toEqual([-HOME_X, 0, 0])
   })
 })
+
+describe("buildSpot rendered height feed (FR-1, AC-1)", () => {
+  test("bodyHeight is the normalized rig's measured Box3 height", () => {
+    for (const archetypeId of [
+      "ray",
+      "crab",
+      "draconic",
+      "tortoise",
+      "golem",
+    ]) {
+      for (const stage of [undefined, "champion"] as const) {
+        const arena = new THREE.Group()
+        const spot = buildSpot(
+          {
+            archetypeId,
+            seed: 7,
+            name: "measure",
+            key: "q",
+            ...(stage ? { stage } : {}),
+          },
+          1,
+          arena,
+        )
+        arena.updateMatrixWorld(true)
+        const box = new THREE.Box3().setFromObject(spot.group)
+        expect(spot.bodyHeight).toBeCloseTo(box.max.y - box.min.y, 10)
+        expect(Number.isFinite(spot.bodyHeight)).toBe(true)
+        expect(spot.bodyHeight).toBeGreaterThan(0)
+      }
+    }
+  })
+})

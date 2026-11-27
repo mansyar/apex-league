@@ -157,4 +157,51 @@ describe("camera director core (FR6)", () => {
     const b = nextShot({ ...pair(4), step: step("idle", { tick: 4 }) })
     expect(a.azimuthDelta).toBeGreaterThan(b.azimuthDelta)
   })
+
+  test("every intent feeds the live pair to the tracked dolly", () => {
+    const ctx: DirectorContext = {
+      ...pair(),
+      actor: point(-3.2, 0, 2.4),
+      target: point(3.2, 0, -2.4),
+    }
+    const shot = nextShot(ctx)
+    expect(shot.focusA).toEqual(point(-3.2, 0, 2.4))
+    expect(shot.focusB).toEqual(point(3.2, 0, -2.4))
+    // Shot multipliers only ever widen the tracked shot; a close-up may
+    // not crop a legal-position fighter (AC2).
+    for (const kind of [
+      "approach",
+      "idle",
+      "melee",
+      "projectile",
+      "impact",
+      "stagger",
+      "knockback",
+      "down",
+      "judge",
+    ] as const) {
+      expect(
+        nextShot({ ...ctx, step: step(kind) }).radiusMult,
+      ).toBeGreaterThanOrEqual(1)
+    }
+    const heavy = nextShot({
+      ...ctx,
+      step: step("melee", { t: 0.3, reaction: "stagger", damage: 14 }),
+    })
+    expect(heavy.radiusMult).toBeGreaterThanOrEqual(1)
+    const ko = nextShot({ ...ctx, step: step("down", { t: 0.6, ko: true }) })
+    expect(ko.radiusMult).toBeGreaterThanOrEqual(1)
+  })
+
+  test("rendered rig heights ride along with the live pair", () => {
+    const ctx: DirectorContext = {
+      ...pair(),
+      heightA: 0.082,
+      heightB: 0.522,
+    }
+    const shot = nextShot(ctx)
+    expect(shot.heightA).toBe(0.082)
+    expect(shot.heightB).toBe(0.522)
+    expect(nextShot(pair()).heightA).toBeUndefined()
+  })
 })

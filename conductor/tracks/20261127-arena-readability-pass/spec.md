@@ -23,7 +23,7 @@ game's core raise → evolve → compete loop.
 ## Goals & Success Metrics
 
 - Fighters project to at least **8% of viewport height** and **32 CSS pixels** at authored
-  rest positions.
+  rest positions, measured from each cast rig's rendered rest height.
 - Every legal fighter position remains fully in frame; a separate wide establishing shot
   covers all arena corners.
 - Broadcast and cinematic views both keep the action readable.
@@ -61,7 +61,7 @@ game's core raise → evolve → compete loop.
 
 | ID | Requirement | Priority |
 | --- | --- | --- |
-| FR-1 | Provide a measurable camera-composition contract: at authored rest positions, fighters project to at least 8% viewport height and 32 CSS pixels; every legal fighter position remains fully in frame across the required viewports and body-size extremes. A separate wide establishing shot must frame all arena corners. | High |
+| FR-1 | Provide a measurable camera-composition contract: at authored rest positions, fighters project to at least 8% viewport height and 32 CSS pixels using each cast rig's measured rendered rest height; every legal fighter position remains fully in frame across the required viewports and body-size extremes. A separate wide establishing shot must frame all arena corners. | High |
 | FR-2 | Retune both broadcast and cinematic composition, including cinematic intent choreography, while preserving camera switching, resize, and reduced-motion behavior. Reduced motion continues to use stable broadcast framing without shake or flash. | High |
 | FR-3 | Redesign the visual arena shell, floor, backdrop, stands/crowd, lighting, fog, and visual spacing for brighter formal-competition contrast. Visual dimensions may change, but simulation coordinates and legal movement bounds may not. | High |
 | FR-4 | Improve fighter silhouette readability through framing and arena contrast without changing fighter models, proportions, stage scale, or generated voxel assets. | High |
@@ -83,7 +83,7 @@ game's core raise → evolve → compete loop.
 
 | ID | Criterion | Verifies |
 | --- | --- | --- |
-| AC-1 | Projection/table tests pin the 8% viewport-height and 32 CSS-pixel minimum at authored rest positions for all three viewports, body-size extremes, and mirror layouts. | FR-1, FR-4 |
+| AC-1 | Projection/table tests pin the 8% viewport-height and 32 CSS-pixel minimum at authored rest positions for all three viewports, body-size extremes, and mirror layouts, using measured rendered rest heights rather than simulation-cylinder heights. | FR-1, FR-4 |
 | AC-2 | Every legal fighter position remains fully in frame across responsive framing and resize behavior, and a separate wide establishing shot frames all arena corners; simulation mapping and legal bounds remain unchanged. | FR-1, FR-6, NFR-1 |
 | AC-3 | Broadcast and cinematic styles both read clearly; cinematic choreography may change, while style switching, resize, and reduced-motion stable-broadcast behavior remain intact with no new shake or flash. | FR-2, FR-4, FR-6 |
 | AC-4 | Arena-only lighting and dressing visibly improve contrast and fighter readability, and the final diff proves no shared ranch lighting, post-processing, voxel, audio, or simulation change. | FR-3, FR-4, NFR-2, NFR-3, NFR-4 |
@@ -117,9 +117,10 @@ None.
   rest-position minimum, plus a separate wide establishing shot for arena corners. The
   action camera must keep every legal fighter position fully in frame; arena corners are not
   required to remain visible during action shots.
-- The 8% / 32 CSS-pixel threshold applies at authored rest positions; all legal movement
-  positions must remain fully in frame but are not required to meet the minimum-height
-  threshold at every instant.
+- The 8% / 32 CSS-pixel threshold applies at authored rest positions using each fighter's
+  rendered rest height measured after arena footprint normalization; simulation-cylinder
+  height is not a proxy for on-screen size. All legal movement positions must remain fully
+  in frame but are not required to meet the minimum-height threshold at every instant.
 - Existing camera styles remain the only saved camera styles.
 - Browser evidence may use existing CLI tooling and gitignored scratch files; no committed
   Playwright dependency or harness is required.

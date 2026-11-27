@@ -57,6 +57,10 @@ export interface DirectorContext {
   readonly target: FocusPoint
   /** Live projectile position while a shot is in flight. */
   readonly projectile: FocusPoint | null
+  /** Rendered upright heights of `actor` and `target`, in world units.
+   * Optional so hand-written contexts can still pin shot grammar alone. */
+  readonly heightA?: number
+  readonly heightB?: number
 }
 
 /** One camera instruction; the scene eases (or cuts) toward it. Fully
@@ -72,6 +76,14 @@ export interface CameraIntent {
   elevationDelta: number
   /** Snap immediately (hard cut) instead of easing. */
   cut: boolean
+  /** Live fighter ground positions, consumed by the rig's tracked dolly.
+   * Optional: callers that only need the shot grammar can omit them. */
+  focusA?: Point3
+  focusB?: Point3
+  /** Rendered heights matching `focusA`/`focusB`. Optional for the legacy
+   * five-field callers that pin shot grammar without a live cast. */
+  heightA?: number
+  heightB?: number
 }
 
 type Look = "pair" | "victim" | "thrower"
@@ -83,16 +95,21 @@ interface ShotSpec {
 }
 
 /** The shot table: one row per playback step kind. */
+// All multipliers are >= 1: the rig's tracked dolly sets the minimum safe
+// distance from the live pair, so a "close-up" is expressed through the look
+// target and angles, never by cropping a legal-position fighter out of shot.
+// The relative ordering still carries the shot grammar (wide approach,
+// tighter impacts, big knockbacks pulling back out).
 const SHOTS: Record<PlaybackStep["kind"], ShotSpec> = {
-  approach: { radiusMult: 1, look: "pair", cut: false },
-  idle: { radiusMult: 0.95, look: "pair", cut: false },
-  melee: { radiusMult: 0.82, look: "pair", cut: false },
-  projectile: { radiusMult: 0.9, look: "thrower", cut: false },
-  impact: { radiusMult: 0.72, look: "victim", cut: false },
-  stagger: { radiusMult: 0.75, look: "victim", cut: false },
-  knockback: { radiusMult: 1.08, look: "pair", cut: false },
-  down: { radiusMult: 0.8, look: "victim", cut: false },
-  judge: { radiusMult: 1.15, look: "pair", cut: true },
+  approach: { radiusMult: 1.15, look: "pair", cut: false },
+  idle: { radiusMult: 1, look: "pair", cut: false },
+  melee: { radiusMult: 1.1, look: "pair", cut: false },
+  projectile: { radiusMult: 1.08, look: "thrower", cut: false },
+  impact: { radiusMult: 1.02, look: "victim", cut: false },
+  stagger: { radiusMult: 1.02, look: "victim", cut: false },
+  knockback: { radiusMult: 1.18, look: "pair", cut: false },
+  down: { radiusMult: 1.05, look: "victim", cut: false },
+  judge: { radiusMult: 1.2, look: "pair", cut: true },
 }
 
 // Allocation-free helpers: every field is fully overwritten per call, so
@@ -174,7 +191,7 @@ export function nextShot(
       const big = (step.damage ?? 0) >= BIG_PUNCH_DAMAGE
       const win = punchWindow()
       if ((heavy || big) && step.t >= win.from && step.t <= win.to) {
-        radiusMult = 0.7
+        radiusMult = 1.02
         look = toward(pairMid, lift(victim, 0.7, scratchA), 0.65, intent.look)
       }
     }
@@ -192,10 +209,23 @@ export function nextShot(
       // The signature KO orbit: a slow deterministic sweep around the
       // fallen fighter while the verdict builds.
       azimuthDelta = side * KO_ORBIT_SWEEP * step.t
-      radiusMult = 0.85
+      radiusMult = 1
       elevationDelta = 0.08 * step.t
     }
   }
+
+  // The rig derives a safe radius from both live positions, so a victim-
+  // biased close-up can never push a legal-position fighter out of frame.
+  if (intent.focusA === undefined) intent.focusA = { x: 0, y: 0, z: 0 }
+  if (intent.focusB === undefined) intent.focusB = { x: 0, y: 0, z: 0 }
+  intent.focusA.x = actor.x
+  intent.focusA.y = actor.y
+  intent.focusA.z = actor.z
+  intent.focusB.x = victim.x
+  intent.focusB.y = victim.y
+  intent.focusB.z = victim.z
+  intent.heightA = ctx.heightA
+  intent.heightB = ctx.heightB
 
   intent.radiusMult = radiusMult
   intent.azimuthDelta = azimuthDelta

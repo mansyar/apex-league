@@ -87,6 +87,7 @@ const EXPECTED_EXPORTS = [
   "createTreatCeremony",
   "createWalk",
   "createWander",
+  "establishingFraming",
   "createMorningAfterCeremony",
   "createMorningAfterLedger",
   "gaitIntensity",
@@ -112,6 +113,7 @@ const EXPECTED_EXPORTS = [
   "strideStep",
   "swayAngle",
   "takeMorningAfter",
+  "trackedActionFraming",
   "windBaseAmp",
   "wrapPi",
 ].sort()

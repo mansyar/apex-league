@@ -14,6 +14,10 @@ export const HOME_X = 2.6
 /** One staged fighter: a DriveFighter plus its fixed home spot. */
 export interface Combatant extends DriveFighter {
   home: THREE.Vector3
+  /** Rendered upright height after `bodyScaleFor` normalization, in world
+   * units. The camera director uses it to size the tracked dolly to the
+   * actual rig instead of the authored sim cylinder. */
+  bodyHeight: number
 }
 
 /** Casting entry: the sim-side description of one side of a fight. The
@@ -72,11 +76,18 @@ export function buildSpot(
   group.scale.setScalar(
     bodyScaleFor(info.archetypeId, Math.max(size.x, size.z)),
   )
+  // Measure the rig AFTER the sim normalization: different archetypes and
+  // stages render at very different upright heights, and the camera has to
+  // frame the body people actually see, not the sim's collision cylinder.
+  group.updateMatrixWorld(true)
+  const renderedBox = new THREE.Box3().setFromObject(group)
+  const bodyHeight = renderedBox.max.y - renderedBox.min.y
   const combatant: Combatant = {
     name: info.name,
     key: info.key,
     group,
     home: new THREE.Vector3(HOME_X * away, 0, 0),
+    bodyHeight,
     away,
     down: false,
     baseColors: new Map(),

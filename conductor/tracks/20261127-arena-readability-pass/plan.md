@@ -12,15 +12,15 @@
 - **Goal:** Make fighters reliably readable through measurable tracked broadcast and cinematic action framing, with a separate wide establishing shot for arena corners, without changing fighter models, stage scale, simulation mapping, or legal movement bounds.
 - **Depends on:** none
 - **Covers:** FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3, AC-6, NFR-1, NFR-4, NFR-5
-- **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`
-- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** in_progress
+- **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/roster.ts`, `apps/client/src/roster.test.ts`, `apps/client/src/staging.ts`, `apps/client/src/staging-director.ts`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
+- **Status:** blocked
 
-**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Prior blocked evidence remains in `verification/phase-1.md`.
+**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum measured from each cast rig's rendered rest height; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Primary verification found that simulation-cylinder heights overstate several rendered rigs, so Phase 1 now measures and feeds each fighter's actual normalized rest height into framing. Prior blocked evidence remains in `verification/phase-1.md`.
 
 - [ ] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
-  - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, body-size extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners.
-  - [ ] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
+  - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, measured rendered body-height extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners; pin the scene-logic barrel surface.
+  - [ ] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest using each cast rig's measured normalized height, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
   - [ ] **P1.T1.3:** Observe and record a genuine failing baseline before implementation.
 - [ ] **P1.T2: Retune broadcast and cinematic framing** — covers: FR-1, FR-2, FR-4, AC-1, AC-2, AC-3
   - [ ] **P1.T2.1:** Tune tracked broadcast/cinematic action framing, a wide establishing composition, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
