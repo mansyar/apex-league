@@ -106,16 +106,26 @@ The primary appends after acceptance:
 - **Covers:** F1, F2, F3, F4, FR-1, FR-2, FR-4, FR-6, FR-7, AC-1, AC-2, AC-3, AC-6, AC-7
 - **Touches:** `apps/client/src/camera/rig.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-R1.md`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts` plus `bun run verify && bun run build` and real-browser lifecycle/cup-cinematic/establishing proof at `1440×900`, `393×852`, and `852×393`
-- **Status:** failed
+- **Status:** verified (corrective pass 2026-11-28, commit `942fd3fe`)
 
-- [ ] **R1.T1: Make camera lifecycle containment-safe and reduced motion readable** — covers: F1, F2
-  - [ ] **R1.T1.1:** Add failing-first live-rig tests from `setMode("arena")` that check whole-body containment on the first and every transition update for broadcast and cinematic, without skipping early frames.
-  - [ ] **R1.T1.2:** Cut or safely interpolate to the first measured action pose; use tracked broadcast action framing for reduced motion while suppressing shake, flash, director choreography, and ornamental motion. Pin rest-floor/containment at all three viewports.
-- [ ] **R1.T2: Test real-smallest-ray separation and explicit fallback** — covers: F4
-  - [ ] **R1.T2.1:** Add the real browser-measured ray/golem/ray-draconic profiles to separation tests; enforce the advertised threshold where feasible and explicitly document/test the justified fallback where it is geometrically unreachable.
-- [ ] **R1.T3: Complete browser evidence and integrated verification** — covers: F3
-  - [ ] **R1.T3.1:** Capture real cup cinematic action and clean desktop/portrait all-four-corner establishing stills at all required viewports; update the evidence matrix and verify clean consoles.
-  - [ ] **R1.T3.2:** Run the exact phase command, full gate, and scope audit; record results in `phase-R1.md` and `integrated.md`.
+- [x] **R1.T1: Make camera lifecycle containment-safe and reduced motion readable** — covers: F1, F2
+  - [x] **R1.T1.1:** Add failing-first live-rig tests from `setMode("arena")` that check whole-body containment on the first and every transition update for broadcast and cinematic, without skipping early frames.
+  - [x] **R1.T1.2:** Cut or safely interpolate to the first measured action pose; use tracked broadcast action framing for reduced motion while suppressing shake, flash, director choreography, and ornamental motion. Pin rest-floor/containment at all three viewports.
+- [x] **R1.T2: Test real-smallest-ray separation and explicit fallback** — covers: F4
+  - [x] **R1.T2.1:** Add the real browser-measured ray/golem/ray-draconic profiles to separation tests; enforce the advertised threshold where feasible and explicitly document/test the justified fallback where it is geometrically unreachable.
+- [x] **R1.T3: Complete browser evidence and integrated verification** — covers: F3
+  - [x] **R1.T3.1:** Capture real cup cinematic action and clean desktop/portrait all-four-corner establishing stills at all required viewports; update the evidence matrix and verify clean consoles.
+  - [x] **R1.T3.2:** Run the exact phase command, full gate, and scope audit; record results in `phase-R1.md` and `integrated.md`.
 
-**Result:** failed
-**Failure:** After two allowed reworks, exact tests pass (72/0/9127) but scoped Biome has two formatter errors and independent live-image review still finds animated fighter crop/occlusion in portrait/landscape cup-cinematic frames. Static rest-box containment does not envelop animated poses. Owner authorization is required for a primary corrective pass; no checkpoint is claimed.
+**Result:** verified
+**Corrective:** The two allowed reworks left animated-pose crop that static
+rest-box fixtures cannot see. Owner-authorized primary corrective pass added
+`ANIM_HEIGHT_PAD = 0.2` containment-only envelope with padded aim in
+`framing.ts` (readability still pinned to rest height; abandoned 0.35 red
+evidence recorded). Exact phase command 72/0/9127, scoped Biome clean,
+framing.ts under the module cap, fresh full gate 4630/1/0 + build exit 0, and
+a fresh `r3-` browser matrix with 12/12 action stills free of viewport-edge
+clip at all three viewports. Full evidence in
+`verification/phase-R1.md` (corrective appendix) and
+`verification/integrated.md`; commit `942fd3fe`. Review re-assessment is
+owned by `conductor-review`.
