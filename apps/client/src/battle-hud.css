@@ -107,10 +107,17 @@
   font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.04em;
+  line-height: 1.1;
   color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* FR-5: show the whole name (including doctrine/rule suffixes) at every
+     viewport. Wrap on spaces, break overlong words, and let the flex item
+     shrink inside its plate — never ellipsize or clip the text. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.battle-plate-right .battle-hud-name {
+  text-align: right;
 }
 
 .battle-hp-num {

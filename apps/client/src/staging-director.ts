@@ -25,6 +25,12 @@ export interface DirectorFrame {
     readonly y: number
     readonly z: number
   } | null
+  /** Rendered rig heights from the cast (world units). */
+  readonly heightA: number
+  readonly heightB: number
+  /** Rendered rig ground-plane half-widths from the cast (world units). */
+  readonly bodyRadiusA?: number
+  readonly bodyRadiusB?: number
 }
 
 /**
@@ -64,6 +70,10 @@ export function createDirectorFeed(): (frame: DirectorFrame) => void {
     ctx.actor = frame.actor
     ctx.target = frame.target
     ctx.projectile = frame.projectile
+    ctx.heightA = frame.heightA
+    ctx.heightB = frame.heightB
+    ctx.bodyRadiusA = frame.bodyRadiusA
+    ctx.bodyRadiusB = frame.bodyRadiusB
     frame.handler(ctx)
   }
 }

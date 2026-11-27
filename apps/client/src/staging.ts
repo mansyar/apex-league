@@ -187,6 +187,10 @@ export function createStaging(arenaGroup: THREE.Group): Staging {
         actor: owned.group.position,
         target: rival.group.position,
         projectile: effects.firstProjectilePosition(),
+        heightA: owned.bodyHeight,
+        heightB: rival.bodyHeight,
+        bodyRadiusA: owned.bodyRadius,
+        bodyRadiusB: rival.bodyRadius,
       })
     }
     driveRaf = requestAnimationFrame(drive)

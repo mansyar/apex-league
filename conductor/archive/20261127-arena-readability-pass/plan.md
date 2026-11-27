@@ -1,0 +1,131 @@
+# Improve arena camera, lighting, and fighter readability — Implementation Plan
+
+> **Branch:** `feat/20261127-arena-readability-pass`
+> **Base:** `main` @ `9bb6710de839a347720fdf53fb66b2df50bbce16`
+>
+> Phase states are `pending`, `in_progress`, `verified`, `failed`, or `blocked`.
+> Only the primary agent writes this file. Phase subagents report results and the
+> primary records them.
+
+## Phase 1: Measurable framing and cinematic composition
+
+- **Goal:** Make fighters reliably readable through measurable tracked broadcast and cinematic action framing, with a separate wide establishing shot for arena corners, without changing fighter models, stage scale, simulation mapping, or legal movement bounds.
+- **Depends on:** none
+- **Covers:** FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3, AC-6, NFR-1, NFR-4, NFR-5
+- **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/roster.ts`, `apps/client/src/roster.test.ts`, `apps/client/src/staging.ts`, `apps/client/src/staging-director.ts`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
+- **Status:** verified
+
+**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum measured from each cast rig's rendered rest height; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Primary verification found that simulation-cylinder heights overstate several rendered rigs, so Phase 1 measures and feeds each fighter's actual normalized rest height into framing. The owner explicitly authorized the primary's final one-line formatter correction after the rework cap; prior blocked evidence remains in `verification/phase-1.md`.
+
+- [x] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
+  - [x] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, measured rendered body-height extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners; pin the scene-logic barrel surface.
+  - [x] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest using each cast rig's measured normalized height, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
+  - [x] **P1.T1.3:** Observe and record a genuine failing baseline before implementation.
+- [x] **P1.T2: Retune broadcast and cinematic framing** — covers: FR-1, FR-2, FR-4, AC-1, AC-2, AC-3
+  - [x] **P1.T2.1:** Tune tracked broadcast/cinematic action framing, a wide establishing composition, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
+  - [x] **P1.T2.2:** Preserve `MM_TO_WORLD`, legal arena bounds, fighter scale, reduced-motion pinning, and shared ranch behavior.
+
+**Result:** verified
+**Checkpoint:** 82f713ef
+**Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-1.md
+
+## Phase 2: Arena dressing, lighting, and HUD names
+
+- **Goal:** Create a brighter formal-arena presentation that preserves silhouette readability and complete battle labels while leaving simulation and shared scene behavior frozen.
+- **Depends on:** Phase 1
+- **Covers:** FR-3, FR-4, FR-5, FR-6, AC-4, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
+- **Touches:** `apps/client/src/arena.ts`, `apps/client/src/battle-hud.css`, `apps/client/src/battleHud.test.ts`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/battleHud.test.ts apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
+- **Status:** verified
+
+- [x] **P2.T1: Redress the arena shell and lighting** — covers: FR-3, FR-4, AC-4
+  - [x] **P2.T1.1:** Retune arena-only floor, backdrop, stands/crowd, visual spacing, ambient/hemi/key/rim lighting, and fog for formal-competition contrast.
+  - [x] **P2.T1.2:** Keep legal movement bounds, simulation mapping, fighter models/scale, shared ranch lighting/post-processing, and audio unchanged.
+- [x] **P2.T2: Preserve full battle HUD names** — covers: FR-5, FR-6, AC-5, AC-6
+  - [x] **P2.T2.1:** Replace ellipsis-prone responsive name layout with full-name wrapping or sizing for desktop, portrait, and landscape.
+  - [x] **P2.T2.2:** Add long/mirrored-name regression coverage and confirm no page overflow or interactive-control occlusion.
+
+**Result:** verified
+**Checkpoint:** 986c7aeb
+**Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-2.md
+
+## Phase 3: Spar/cup browser proof and integrated gate
+
+- **Goal:** Prove the finished arena in real spar and cup flows at desktop, portrait, and landscape sizes with stills, a short GIF, clean consoles, and the full configured gate.
+- **Depends on:** Phase 1, Phase 2, and Phase 4
+- **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
+- **Touches:** `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
+- **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures and measurements at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`
+- **Status:** verified
+
+- [x] **P3.T1: Capture real spar and cup evidence** — covers: FR-7, AC-6, AC-7
+  - [x] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
+  - [x] **P3.T1.2:** Measure fighter projection, establishing-shot corner bounds, name bounds/ellipsis, page overflow, safe areas, and camera lifecycle behavior.
+  - [x] **P3.T1.3:** Cover reduced motion and dense effects, then produce stills plus a short GIF with clean consoles.
+- [x] **P3.T2: Run the integrated gate and scope audit** — covers: AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
+  - [x] **P3.T2.1:** Run the full configured stack and module-size test; record exact results.
+  - [x] **P3.T2.2:** Prove no sim/state/save/balance, audio, voxel/determinism, ranch/non-battle UI, dependency, or generated-file diff.
+
+**Result:** verified
+**Checkpoint:** c1860f51
+**Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md
+**Previous blocking evidence:** The original pass found default-broadcast occlusion and weak arena contrast. Phase 4 corrected those issues; this reopened pass records settled-action separation, improved contrast, clean consoles, full gate, exhaustive containment, and the primary-produced GIF. Residual visual findings are retained in the evidence and review will assess them.
+
+<!--
+The primary appends after acceptance:
+**Result:** verified
+**Checkpoint:** <short-sha>
+**Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md
+-->
+
+## Phase 4: Broadcast separation and arena contrast correction
+
+- **Goal:** Correct the visual failures found during Phase 3 verification: keep both fighter silhouettes visibly separated/readable in the default broadcast action shot and materially improve arena contrast in real captures, without changing simulation, fighter scale, assets, audio, or ranch behavior.
+- **Depends on:** Phase 2
+- **Covers:** FR-1, FR-2, FR-3, FR-4, FR-6, AC-1, AC-2, AC-3, AC-4, AC-6, NFR-1, NFR-3, NFR-4, NFR-5
+- **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/roster.ts`, `apps/client/src/roster.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/staging.ts`, `apps/client/src/staging-director.ts`, `apps/client/src/arena.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-4.md`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
+- **Status:** verified
+
+- [x] **P4.T1: Separate broadcast fighters and pin whole-body framing** — covers: FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3
+  - [x] **P4.T1.1:** Add failing-first projection tests using measured rendered body extents that require two visibly separated fighter silhouettes at rest and representative legal positions, while preserving the 8% / 32 CSS-pixel floor, full-body containment, mirror layouts, and all three viewports.
+  - [x] **P4.T1.2:** Adjust the tracked broadcast/cinematic composition and feed measured body extents where needed; preserve simulation mapping, legal bounds, stage scale, reduced-motion stability, and ranch behavior.
+- [x] **P4.T2: Increase real arena contrast** — covers: FR-3, FR-4, AC-4
+  - [x] **P4.T2.1:** Retune arena-only lighting, floor/backdrop values, and fog so real broadcast/cinematic captures clearly separate fighter silhouettes from the environment.
+  - [x] **P4.T2.2:** Confirm no shared ranch lighting, post-processing, audio, voxel, simulation, save, dependency, or generated-file change.
+
+**Result:** verified
+**Checkpoint:** c6e2963d
+**Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-4.md
+
+## Phase R1: Review Fixes
+
+- **Goal:** Resolve strict-review F1–F4: make every camera lifecycle frame containment-safe, use readable tracked broadcast framing under reduced motion without shake/flash, cover real-smallest-ray separation with an explicit tested fallback, and complete the cup-cinematic/establishing browser evidence matrix.
+- **Depends on:** Phase 3 and Phase 4
+- **Covers:** F1, F2, F3, F4, FR-1, FR-2, FR-4, FR-6, FR-7, AC-1, AC-2, AC-3, AC-6, AC-7
+- **Touches:** `apps/client/src/camera/rig.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-R1.md`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts` plus `bun run verify && bun run build` and real-browser lifecycle/cup-cinematic/establishing proof at `1440×900`, `393×852`, and `852×393`
+- **Status:** verified (corrective pass 2026-11-28, commit `942fd3fe`)
+
+- [x] **R1.T1: Make camera lifecycle containment-safe and reduced motion readable** — covers: F1, F2
+  - [x] **R1.T1.1:** Add failing-first live-rig tests from `setMode("arena")` that check whole-body containment on the first and every transition update for broadcast and cinematic, without skipping early frames.
+  - [x] **R1.T1.2:** Cut or safely interpolate to the first measured action pose; use tracked broadcast action framing for reduced motion while suppressing shake, flash, director choreography, and ornamental motion. Pin rest-floor/containment at all three viewports.
+- [x] **R1.T2: Test real-smallest-ray separation and explicit fallback** — covers: F4
+  - [x] **R1.T2.1:** Add the real browser-measured ray/golem/ray-draconic profiles to separation tests; enforce the advertised threshold where feasible and explicitly document/test the justified fallback where it is geometrically unreachable.
+- [x] **R1.T3: Complete browser evidence and integrated verification** — covers: F3
+  - [x] **R1.T3.1:** Capture real cup cinematic action and clean desktop/portrait all-four-corner establishing stills at all required viewports; update the evidence matrix and verify clean consoles.
+  - [x] **R1.T3.2:** Run the exact phase command, full gate, and scope audit; record results in `phase-R1.md` and `integrated.md`.
+
+**Result:** verified
+**Corrective:** The two allowed reworks left animated-pose crop that static
+rest-box fixtures cannot see. Owner-authorized primary corrective pass added
+`ANIM_HEIGHT_PAD = 0.2` containment-only envelope with padded aim in
+`framing.ts` (readability still pinned to rest height; abandoned 0.35 red
+evidence recorded). Exact phase command 72/0/9127, scoped Biome clean,
+framing.ts under the module cap, fresh full gate 4630/1/0 + build exit 0, and
+a fresh `r3-` browser matrix with 12/12 action stills free of viewport-edge
+clip at all three viewports. Full evidence in
+`verification/phase-R1.md` (corrective appendix) and
+`verification/integrated.md`; commit `942fd3fe`. Review re-assessment is
+owned by `conductor-review`.

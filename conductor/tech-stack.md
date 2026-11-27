@@ -425,6 +425,30 @@
   852×393; the pre-existing internally-scrolling spar setup sizing is
   unchanged.*
 
+- *2026-11-27/28 — Arena readability pass (track
+  `20261127-arena-readability-pass`, review Round 1 + corrective): `roster.ts`
+  now records each cast rig's measured `bodyHeight` and `bodyRadius` after the
+  frozen footprint normalization. Those values flow through
+  staging/director/rig into `trackedActionFraming`, which solves a telephoto
+  action shot from whole-body footprint corners, preserves the measured-height
+  8% / 32 CSS-pixel rest floor, and searches bounded three-quarter azimuths to
+  keep both silhouettes distinct (explicit fallback when 0.38 is geometrically
+  unreachable). Containment samples add an animated-pose envelope (head plus
+  0.2 world units, balanced aim) because live bodies rise above rest boxes;
+  readability stays pinned to rest height. Arena lifecycle hard-cuts pose and
+  lens together (no easing crop); entry holds a deterministic 750 ms wide
+  establishing beat, and reduced motion skips the beat for readable tracked
+  broadcast action with no shake/flash/director motion. A separate wide
+  establishing shot owns the all-arena-corners requirement. Cinematic
+  multipliers remain widening-only. Arena-only floor/stand/lighting/fog values
+  were retuned for contrast and `.battle-hud-name` now wraps/shrinks full
+  names instead of ellipsis. Simulation coordinates, legal bounds, fighter
+  scale, ranch lighting/post-processing, audio, voxel/determinism, save/state,
+  dependencies and generated files remain frozen. Desktop/portrait/landscape
+  captures, an exhaustive 252,000-projection containment probe and the short
+  PR GIF document the result; transient lunge-beat fighter stacking and the
+  landscape HUD line-box metric remain recorded visual findings.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed
