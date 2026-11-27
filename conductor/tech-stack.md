@@ -406,6 +406,25 @@
    change; desktop and forced iPhone 15 captures cover spar, cup battle and
    cup results stamps.*
 
+- *2026-11-27 — HUD pointer ownership and spar modal input (track
+  `20261127-hud-pointer-modal-input`): `ui/modal.ts` gained opt-in
+  `background` isolation for one or more `HTMLElement` targets. It snapshots
+  each target's exact prior `inert`/`aria-hidden` state, reference-counts
+  nested opens, restores on the last close before cleanup/focus return, and
+  leaves existing callers unchanged when the option is omitted. Ranch HUD
+  wrappers now pass pointer events through their transparent boxes while
+  actual chips/panels, the creature plate, Rename and SPAR explicitly own
+  their hit areas. `spar.ts` uses the shared `openModal`/`closeModal`/
+  `isModalOpen` lifecycle for the complete setup → fight → result lifetime;
+  `sparModalBackground` isolates the app root's other children at open time,
+  the overlay is a labelled `role="dialog"` at `--z-modal`, focus hands off to
+  the battle log toggle during a fight, and dismissal restores focus and
+  isolation state. Client-only presentation fix; no sim, state, save,
+  balance, audio, voxel, dependency, generated-file or copy change. Unit and
+  Playwright CLI proof covers desktop 1440×900, portrait 393×852 and landscape
+  852×393; the pre-existing internally-scrolling spar setup sizing is
+  unchanged.*
+
 ## Server
 - **Framework**: ElysiaJS on Bun, in `apps/server` (endpoints: trainer
   identity, save sync, leaderboards, ghost data — the last two landed
