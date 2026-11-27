@@ -6,7 +6,7 @@
   "priority": "high",
   "depends_on": [],
   "created_at": "2026-11-27T14:46:47.5083966+11:00",
-  "updated_at": "2026-11-27T14:53:33.4053710+11:00",
+  "updated_at": "2026-11-27T15:16:08.1620596+11:00",
   "spec": "spec.md",
   "plan": "plan.md",
   "branch": "feat/20261127-arena-readability-pass",

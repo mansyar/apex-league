@@ -14,7 +14,9 @@
 - **Covers:** FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3, AC-6, NFR-1, NFR-4, NFR-5
 - **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** in_progress
+- **Status:** blocked
+
+**Result:** blocked — AC-1's universal 8% / 32 CSS-pixel minimum conflicts with AC-2's full-arena framing requirement at portrait aspect. Owner must choose which invariant to relax before implementation resumes. Evidence: `conductor/tracks/20261127-arena-readability-pass/verification/phase-1.md`.
 
 - [ ] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
   - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, body-size extremes, mirror layouts, legal movement positions, and arena corners.
