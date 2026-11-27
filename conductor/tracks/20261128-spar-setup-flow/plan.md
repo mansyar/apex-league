@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-5, AC-1, AC-2, AC-5
 - **Touches:** `apps/client/src/spar/panel.ts`, `apps/client/src/spar.ts`, `apps/client/src/spar/setup.ts`, `apps/client/src/spar/*.test.ts`
 - **Verification:** `bun test --check apps/client/src/spar/panel.test.ts apps/client/src/spar/ghost.test.ts apps/client/src/spar/casting.test.ts` (0 fail) + `biome check` on touched files
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Decouple tactic pick from battle launch** — covers: FR-1
   - [ ] **P1.T1.1: Add armed-tactic state with Press default; taps update highlight only**
