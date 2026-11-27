@@ -24,7 +24,8 @@ game's core raise → evolve → compete loop.
 
 - Fighters project to at least **8% of viewport height** and **32 CSS pixels** at authored
   rest positions.
-- Every legal movement position and arena corner remains fully in frame.
+- Every legal fighter position remains fully in frame; a separate wide establishing shot
+  covers all arena corners.
 - Broadcast and cinematic views both keep the action readable.
 - Full battle names remain visible without ellipsis on desktop, portrait, and landscape.
 - The arena reads as a brighter, formal competition space without hiding fighter
@@ -60,13 +61,13 @@ game's core raise → evolve → compete loop.
 
 | ID | Requirement | Priority |
 | --- | --- | --- |
-| FR-1 | Provide a measurable camera-composition contract: at authored rest positions, fighters project to at least 8% viewport height and 32 CSS pixels; all legal movement positions and arena corners remain fully in frame across the required viewports and body-size extremes. | High |
+| FR-1 | Provide a measurable camera-composition contract: at authored rest positions, fighters project to at least 8% viewport height and 32 CSS pixels; every legal fighter position remains fully in frame across the required viewports and body-size extremes. A separate wide establishing shot must frame all arena corners. | High |
 | FR-2 | Retune both broadcast and cinematic composition, including cinematic intent choreography, while preserving camera switching, resize, and reduced-motion behavior. Reduced motion continues to use stable broadcast framing without shake or flash. | High |
 | FR-3 | Redesign the visual arena shell, floor, backdrop, stands/crowd, lighting, fog, and visual spacing for brighter formal-competition contrast. Visual dimensions may change, but simulation coordinates and legal movement bounds may not. | High |
 | FR-4 | Improve fighter silhouette readability through framing and arena contrast without changing fighter models, proportions, stage scale, or generated voxel assets. | High |
 | FR-5 | Show full battle HUD names and labels without ellipsis at desktop, portrait, and landscape sizes, including long and mirrored names. Responsive layout changes must not create page overflow or hide interactive controls. | High |
 | FR-6 | Handle phone orientations and safe areas, stage/body-size extremes, camera lifecycle changes, and dense effects without clipping, NaN geometry, overflow, focus loss, or cross-fighter state. | High |
-| FR-7 | Capture real spar and cup evidence for both camera styles and all required viewports, including stills and a short GIF with clean browser consoles. | High |
+| FR-7 | Capture real spar and cup evidence for both camera styles and all required viewports, including action shots, a wide arena establishing shot, stills, and a short GIF with clean browser consoles. | High |
 
 ## Non-Functional Requirements
 
@@ -83,7 +84,7 @@ game's core raise → evolve → compete loop.
 | ID | Criterion | Verifies |
 | --- | --- | --- |
 | AC-1 | Projection/table tests pin the 8% viewport-height and 32 CSS-pixel minimum at authored rest positions for all three viewports, body-size extremes, and mirror layouts. | FR-1, FR-4 |
-| AC-2 | All legal movement positions and arena corners remain fully in frame across responsive framing and resize behavior; simulation mapping and legal bounds remain unchanged. | FR-1, FR-6, NFR-1 |
+| AC-2 | Every legal fighter position remains fully in frame across responsive framing and resize behavior, and a separate wide establishing shot frames all arena corners; simulation mapping and legal bounds remain unchanged. | FR-1, FR-6, NFR-1 |
 | AC-3 | Broadcast and cinematic styles both read clearly; cinematic choreography may change, while style switching, resize, and reduced-motion stable-broadcast behavior remain intact with no new shake or flash. | FR-2, FR-4, FR-6 |
 | AC-4 | Arena-only lighting and dressing visibly improve contrast and fighter readability, and the final diff proves no shared ranch lighting, post-processing, voxel, audio, or simulation change. | FR-3, FR-4, NFR-2, NFR-3, NFR-4 |
 | AC-5 | Full HUD names remain visible without ellipsis at `1440×900`, `393×852`, and `852×393`, including long and mirrored names; computed bounds show no horizontal page overflow or occluded interactive control. | FR-5, FR-6 |
@@ -112,6 +113,10 @@ None.
 
 - The visual arena may be larger than the legal simulation arena; visual redesign does not
   grant fighters additional legal movement space.
+- Owner decision (2026-11-27): use tracked action framing to preserve the 8% / 32 CSS-pixel
+  rest-position minimum, plus a separate wide establishing shot for arena corners. The
+  action camera must keep every legal fighter position fully in frame; arena corners are not
+  required to remain visible during action shots.
 - The 8% / 32 CSS-pixel threshold applies at authored rest positions; all legal movement
   positions must remain fully in frame but are not required to meet the minimum-height
   threshold at every instant.

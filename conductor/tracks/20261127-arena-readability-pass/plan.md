@@ -9,21 +9,21 @@
 
 ## Phase 1: Measurable framing and cinematic composition
 
-- **Goal:** Make fighters reliably readable through measurable broadcast and cinematic framing without changing fighter models, stage scale, simulation mapping, or legal movement bounds.
+- **Goal:** Make fighters reliably readable through measurable tracked broadcast and cinematic action framing, with a separate wide establishing shot for arena corners, without changing fighter models, stage scale, simulation mapping, or legal movement bounds.
 - **Depends on:** none
 - **Covers:** FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3, AC-6, NFR-1, NFR-4, NFR-5
 - **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** blocked
+- **Status:** in_progress
 
-**Result:** blocked — AC-1's universal 8% / 32 CSS-pixel minimum conflicts with AC-2's full-arena framing requirement at portrait aspect. Owner must choose which invariant to relax before implementation resumes. Evidence: `conductor/tracks/20261127-arena-readability-pass/verification/phase-1.md`.
+**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Prior blocked evidence remains in `verification/phase-1.md`.
 
 - [ ] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
-  - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, body-size extremes, mirror layouts, legal movement positions, and arena corners.
-  - [ ] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest, full framing at legal positions, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
+  - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, body-size extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners.
+  - [ ] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
   - [ ] **P1.T1.3:** Observe and record a genuine failing baseline before implementation.
 - [ ] **P1.T2: Retune broadcast and cinematic framing** — covers: FR-1, FR-2, FR-4, AC-1, AC-2, AC-3
-  - [ ] **P1.T2.1:** Tune base arena framing, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
+  - [ ] **P1.T2.1:** Tune tracked broadcast/cinematic action framing, a wide establishing composition, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
   - [ ] **P1.T2.2:** Preserve `MM_TO_WORLD`, legal arena bounds, fighter scale, reduced-motion pinning, and shared ranch behavior.
 
 <!--
@@ -66,8 +66,8 @@ The primary appends after acceptance:
 - **Status:** pending
 
 - [ ] **P3.T1: Capture real spar and cup evidence** — covers: FR-7, AC-6, AC-7
-  - [ ] **P3.T1.1:** Capture broadcast and cinematic spar/cup views at all three viewports using real UI and real sim seeding seams.
-  - [ ] **P3.T1.2:** Measure fighter projection, name bounds/ellipsis, page overflow, safe areas, and camera lifecycle behavior.
+  - [ ] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
+  - [ ] **P3.T1.2:** Measure fighter projection, establishing-shot corner bounds, name bounds/ellipsis, page overflow, safe areas, and camera lifecycle behavior.
   - [ ] **P3.T1.3:** Cover reduced motion and dense effects, then produce stills plus a short GIF with clean consoles.
 - [ ] **P3.T2: Run the integrated gate and scope audit** — covers: AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
   - [ ] **P3.T2.1:** Run the full configured stack and module-size test; record exact results.
