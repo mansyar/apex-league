@@ -4,7 +4,7 @@
  * arm tactics/rules without ever launching a bout (FR-1, FR-2, AC-1, AC-2).
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
-import { type DoctrineId, type RuleId, createCreature } from "@apex/sim"
+import { createCreature, type DoctrineId, type RuleId } from "@apex/sim"
 import {
   buildSparPanel,
   type SparPanelSetupRefs,
@@ -157,7 +157,9 @@ function build(): Harness {
 }
 
 function tacticButtons(refs: SparPanelSetupRefs): FakeElement[] {
-  return refs.doctrineButtons.map(({ button }) => button as unknown as FakeElement)
+  return refs.doctrineButtons.map(
+    ({ button }) => button as unknown as FakeElement,
+  )
 }
 
 function ruleButtons(refs: SparPanelSetupRefs): FakeElement[] {

@@ -8,9 +8,9 @@
 import type { DoctrineId, RuleId } from "@apex/sim"
 import { RULE_IDS, RULE_LABELS } from "@apex/sim"
 import {
-  type ChoiceButton,
   buildChoiceRow,
   buildDoctrineRow,
+  type ChoiceButton,
   renderSpeedButton,
 } from "../battleUI"
 import { icons } from "../ui/icons"
