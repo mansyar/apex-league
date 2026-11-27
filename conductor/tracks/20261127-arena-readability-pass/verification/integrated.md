@@ -3,12 +3,14 @@
 Track: `20261127-arena-readability-pass`
 Branch: `feat/20261127-arena-readability-pass`
 Date: 2026-11-27
-Scope: Phases 1–3 (framing/composition, arena dressing + full HUD names,
-browser proof + integrated gate).
-Status: **blocked at Phase 3 visual acceptance**; Phases 1–2 are verified, but
-independent image review found default-broadcast fighter occlusion and weak
-arena contrast. AC-7 terminal registry/archive/review/PR steps are **partial by
-design** and remain owned by the primary agent.
+Scope: Phases 1–4 (framing/composition, arena dressing + full HUD names,
+browser proof + integrated gate, broadcast separation and arena contrast
+correction).
+Status: **verified after the Phase 4 correction and reopened Phase 3 proof**;
+Phases 1–4 are verified, with documented Phase 3 limitations (landscape HUD
+line-box delta, reduced-motion verdict timing, clean visual four-corner proof
+at 852×393 only). AC-7 terminal registry/archive/review/PR steps are **partial
+by design** and remain owned by the primary agent.
 
 This report consolidates the already-recorded phase evidence. It does not
 replace the phase reports, which hold the exact commands, outputs and paths:
@@ -121,3 +123,137 @@ the primary agent.
   corner-proof limitation, gate retry, GIF left to primary) are detailed in
   `phase-3.md`.
 - Both Phase 3 evidence files remain uncommitted for the primary.
+
+---
+
+## Reopened after Phase 4 (2026-11-27)
+
+Phase 3 was reopened after Phase 4 (`c6e2963d`) corrected the two visual
+blockers recorded above: default-broadcast fighters now separate through the
+measured-azimuth search in `trackedActionFraming`, and the arena paint/lighting
+contrast was retuned. This reopened pass is evidence-only, preserves all earlier
+failed captures, and writes every new visual with a `corrected-` prefix. Phase
+base was `795711f8356d14ea58cc67d41f27a78e8b4d2ce5`; head was unchanged.
+
+### Phase 4 correction (consolidated)
+
+- Added measured `bodyRadius` after frozen footprint normalization; the 9-arg
+  `trackedActionFraming(aspect, a, b, pose, heightA, heightB, look, bodyRadiusA,
+  bodyRadiusB)` searches three-quarter azimuth offsets
+  (`SEPARATION_OFFSETS = [0,0.02,0.04,0.06,0.08,0.12,0.18,0.26,0.4,0.55]`)
+  for centre separation `MIN_CENTER_SEPARATION = 0.38` while preserving
+  `READABILITY_FLOOR = 0.082`.
+- Whole-body footprint-corner projection tests and arena-only contrast retune
+  were added; reduced motion remains the approved pinning exception.
+- Phase 4 verification is green (full gate 4623 pass / 1 skip / 0 fail), so the
+  former FR-3/AC-3 and FR-4/AC-4 blockers are resolved in code.
+
+### Reopened Phase 3 proof
+
+- Real sim casts only: a `spark_ray` player created with
+  `createCreatureFrom(getSpecies('spark_ray'), 12345)`, renamed `Sunbeam Comet`,
+  and a real `makeExhibition` rival pinned by `Date.now = 2147483648` to
+  `Ember Drake` seed 0. Camera/motion via `setArenaCamera` / `setReducedMotion`
+  + `saveGame` + reload. No DOM `.click()` workaround.
+- Full 3-viewport × 6-state matrix repeated at 1440×900, 393×852 and 852×393:
+  ranch baseline, establishing/corner proof, spar broadcast, spar cinematic,
+  real day-7 cup battle and reduced-motion stable arena. All new stills are
+  `corrected-`-prefixed and inventoried in `phase-3.md`.
+- HUD names were full in every capture: `clip` / `normal` / `anywhere`,
+  `scrollWidth == clientWidth`, no ellipsis. `scrollWidth == innerWidth` at all
+  viewports; plates and controls stayed in bounds. Landscape reports a 2 px
+  line-box delta (39/37) with full OCR text and no visible clipping.
+- Projection remeasured with real rig heights **and radii** through the new
+  9-arg framing function: worst case ray/ray landscape 8.20% / 32.2 px; all
+  sampled bodies `inFrame`; all four establishing corners NDC-in-frame at every
+  viewport. Full data in `projection-measurement-corrected.json`.
+- Vision review: corrected broadcast entry and cinematic action beats show two
+  separate fighters with brighter arena paint; landscape cup entry shows all
+  four inner-square corners; reduced frames have vignette 0 and a verdict
+  banner from entry, proving pinning/no-flash rather than clean live action.
+- Corrected WebM: `corrected-arena-action-desktop-1440x900.webm` (Ember Drake
+  cast, stable HUD, dense vignette peaks 0.81 / 0.702206 / 0.63385,
+  `errors: []`). GIF transcode command and ≤10 MB / ≤10 fps target are recorded
+  in `phase-3.md` and left to the primary.
+- Consoles: `Total messages: 2 (Errors: 0, Warnings: 0)` for each checked
+  session; every capture script returned `errors: []`.
+- Final exact gate with all browsers closed: `bun run verify && bun run build`
+  → exit 0, **4623 pass / 1 skip / 0 fail**, 683529 expect() calls, 4624 tests
+  / 446 files / 93.74s, Biome clean on 1063 files, voxel determinism
+  byte-identical, Vite `index-DhAc5cQZ.js` 1,114.41 kB (gzip 309.22 kB).
+  `bun test --check --parallel=4 --timeout 120000
+  apps/client/src/module-size.test.ts` → 5 pass / 0 fail / 15 expect() calls.
+
+### Reopened acceptance-criteria roll-up
+
+| Criterion | Verdict | Source |
+| --- | --- | --- |
+| AC-1 — 8% / 32 px at rest, three viewports, body extremes, mirrored | pass | Phase 1 + corrected 9-arg projection, worst 8.20% / 32.2 px |
+| AC-2 — legal positions in frame; establishing corners | pass with finding | Corrected NDC containment at all viewports; clean visual four corners at 852×393 only |
+| AC-3 — broadcast/cinematic readable; resize, style switch, reduced motion | pass | Phase 4 correction + corrected broadcast/cinematic stills with separated fighters |
+| AC-4 — arena contrast and fighter silhouette | pass with finding | Brighter corrected stills and separated entry/action bodies; later melee convergence can still occlude |
+| AC-5 — full HUD names, no clipping/ellipsis | pass | Phase 2 CSS tests + corrected computed styles and OCR |
+| AC-6 — lens/lifecycle/reduced-motion/dense effects bounded and clean | pass with finding | Dense ≤0.81, no errors, reduced pin; 39/37 landscape line-box delta |
+| AC-7 — full gate + terminal workflow | gate pass; terminal partial | Final gate 4623/0; registry/archive/review/PR owner-owned |
+| NFR-1..NFR-5 — frozen surfaces, determinism, module caps, build | pass | Scope audit + final full gate |
+
+### AC-7 terminal proof — still partial by design
+
+The reopened phase again made no Conductor-state or PR changes. Registry,
+archive, Conductor review, PR creation/push/merge remain owned by the primary
+agent; the evidence required for those steps is green.
+
+### Reopened scope and notes
+
+- No production code, CSS, tests, generator, schema, sim, save, audio, plan,
+  metadata, roadmap, product docs, review, PR, generated file or lockfile was
+  edited in the reopened phase. No commits were created; head remains
+  `795711f8`.
+- No questions, web use or subagents were used. No permission denial occurred.
+  Some vision calls returned HTTP 429 rate limits and were not tight-loop
+  retried.
+- `playwright-cli close-all` preceded the gate (`playwright-cli list` →
+  `(no browsers)`); Vite was left running.
+- `verification/phase-3.md` and this `verification/integrated.md` are the only
+  working-tree changes and remain uncommitted for the primary.
+
+## Independent primary verification (reopened pass)
+
+**Result: verified with recorded, non-blocking visual findings.**
+
+- Primary image review covered corrected desktop/portrait/landscape broadcast
+  contact sheets, cinematic desktop frames, the landscape cup establishing frame,
+  and reduced-motion portrait. Settled desktop broadcast `action-b`…`action-f`,
+  portrait broadcast, landscape broadcast, and desktop cinematic all show two
+  distinct fighter bodies. The initial desktop `action-a` transition can clip the
+  draconic fighter at the right edge before the tracked camera settles; this is
+  recorded explicitly for review.
+- Arena contrast is materially improved in real captures: floor lines and both
+  fighter silhouettes read against the background. Landscape remains visually
+  subdued but readable. Reduced-motion portrait is stable/wide with vignette 0;
+  its immediate victory banner is documented rather than used as action proof.
+- Primary re-ran `(bun run verify && bun run build)` → exit 0: clean typechecks;
+  **4,623 pass / 1 skip / 0 fail**, 683,529 expect() calls, 4,624 tests / 446
+  files; Biome clean on 1,063 files; all archetype stages and 5 prop digests
+  byte-identical; Vite `index-DhAc5cQZ.js` 1,114.41 kB, only the existing chunk
+  advisory.
+- Independent exhaustive probe result:
+  `.conductor/evidence/arena-framing-exhaustive-result.json` — **252,000
+  whole-body corner projections, 0 failures** across five body profiles, all
+  15×15 legal position pairs, and all three viewports.
+- Corrected browser projection: tightest rest case ray/ray landscape
+  **8.20% / 32.2 CSS px**; all four establishing corners NDC-in-frame.
+- Primary produced the required GIF from the corrected WebM after trimming the
+  loading/ranch preamble:
+  `.conductor/media/20261127-arena-readability-pass/arena-readability.gif` —
+  960×540, 8 fps, 64 frames, 8.01 s, 5,077,671 bytes. It is gitignored and will
+  be attached to the PR, not committed.
+- Scope check before primary edits: phase range `795711f8..HEAD` had no commits
+  or source changes; only the two evidence files are modified and
+  `git diff --check` exits 0.
+
+Review findings to carry forward: transient desktop broadcast camera-settling
+clip, landscape 39/37 HUD line-box delta without visible clipping, and no clean
+desktop/portrait all-four-corner still (projection proof plus partial visuals).
+These do not reverse the corrected settled-action separation, full HUD names,
+or improved arena contrast.

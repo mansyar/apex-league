@@ -5,7 +5,7 @@ Branch: `feat/20261127-arena-readability-pass`
 Phase base: `4971dbccd2bf99a53677c47e17edc9e1ad902992`
 Phase: 3 — Spar/cup browser proof and integrated gate
 Date: 2026-11-27
-Status: **blocked** (evidence files remain intentionally uncommitted for the primary)
+Status: **verified after the Phase 4 correction and reopened pass** (the original blocked pass is preserved below)
 
 Phase 3 is evidence-only. No production code, CSS, tests, generator, schema,
 sim, save, audio, plan, metadata, roadmap, product docs, review, or PR files
@@ -326,3 +326,268 @@ phase.
    palette constants.
 3. A corrected Phase 3 pass must repeat the three-viewport evidence matrix and
    produce the GIF before acceptance.
+
+---
+
+## Reopened after Phase 4 (2026-11-27)
+
+Phase 3 was reopened after Phase 4 (`c6e2963d`) fixed the two blocking visual
+defects: default broadcast fighters now separate via a measured-azimuth search,
+and arena paint/lighting contrast was raised. Phase base for this reopened pass
+was `795711f8356d14ea58cc67d41f27a78e8b4d2ce5`; head was unchanged by this
+evidence-only phase. **Result: verified, with the limitations below recorded.**
+All earlier failed evidence was preserved; every new visual uses a `corrected-`
+prefix.
+
+### Reopened method and boundaries
+
+- No production code, CSS, tests, generator, schema, sim, save, audio, plan,
+  metadata, roadmap, product docs, review or PR edits. No commits.
+- Saves/casts came only from real sim exports. The player was a real
+  `C.createCreatureFrom(m.getSpecies('spark_ray'), 12345)` creature installed
+  into a normal `chooseStarter`/`evolveCreature` save and renamed `Sunbeam
+  Comet` with `renameCreature`. Rivals came from the real `makeExhibition`.
+- `Date.now` was pinned to `2147483648` only while `button.spar-button` opened
+  the spar panel; `battleSeed = 0` deterministically drew `Ember Drake` (seed
+  0, doctrine Press). The original clock was restored immediately. No DOM
+  `.click()` workaround was used; all navigation used Playwright pointer/keyboard
+  actions. Camera style and reduced motion used real `setArenaCamera` /
+  `setReducedMotion` + `saveGame` + reload; `window.__p3mode`,
+  `window.__p3nextmode`, `window.__p3pauseMs` were browser-only bookkeeping.
+- Viewports were set before navigation in separate sessions (`c3d` desktop,
+  `c3p` portrait, `c3l` landscape, `c3v` video). All in-fight measurements and
+  stills were taken inside one `run-code` call.
+
+### Reopened matrix (all paths relative to `.conductor/evidence/20261127-arena-readability-pass/`)
+
+| State | 1440×900 | 393×852 | 852×393 |
+| --- | --- | --- | --- |
+| Ranch baseline | `corrected-ranch-baseline-1440x900.png` | `corrected-ranch-baseline-393x852.png` | `corrected-ranch-baseline-852x393.png` |
+| Wide establishing / corners | `corrected-spar-broadcast-entry-1440x900.png` (top-left corner visible; rest off-frame), `projection-measurement-corrected.json` (all four NDC-in-frame) | `corrected-spar-reduced-entry-393x852.png` (front/upper corners visible; banner), `projection-measurement-corrected.json` | `corrected-cup-broadcast-entry-852x393.png` — vision: **all four inner-square corners visible**, two fighters separate, no banner; `projection-measurement-corrected.json` |
+| Spar broadcast action | `corrected-spar-broadcast-{entry,action-a..f,dense}-1440x900.png` | `corrected-spar-broadcast-*-393x852.png` | `corrected-spar-broadcast-*-852x393.png` |
+| Spar cinematic action | `corrected-spar-cinematic-*-1440x900.png` | `corrected-spar-cinematic-*-393x852.png` | `corrected-spar-cinematic-*-852x393.png` |
+| Real cup battle | `corrected-cup-broadcast-{entry,action-a..d,dense}-1440x900.png` | `corrected-cup-broadcast-*-393x852.png` | `corrected-cup-broadcast-*-852x393.png` |
+| Reduced-motion stable arena | `corrected-spar-reduced-*-1440x900.png`, `corrected-wide-reduced-*-1440x900.png` | `corrected-spar-reduced-*-393x852.png` | `corrected-spar-reduced-*-852x393.png` |
+
+`*` expands to `entry`, `action-a`…`action-f` (spar) / `action-a`…`action-d`
+(cup), `dense`, and where captured `final`. Additional attempts
+`corrected-wide-broadcast-*`, `corrected-establishing-broadcast-*`, and
+`corrected-establishing-pause-*-1440x900.png` are preserved as honest failed
+attempts at a clean establishing still; none replaced a matrix cell.
+
+### Reopened commands and results
+
+```text
+playwright-cli -s=c3d open about:blank        (then resize 1440 900, goto http://localhost:5173/)
+playwright-cli -s=c3p open about:blank        (then resize 393 852, goto http://localhost:5173/)
+playwright-cli -s=c3l open about:blank        (then resize 852 393, goto http://localhost:5173/)
+playwright-cli -s=c3v open about:blank        (then resize 1440 900, goto http://localhost:5173/)
+playwright-cli -s=<session> run-code --filename=.conductor/evidence/20261127-arena-readability-pass/seed-corrected.js
+playwright-cli -s=<session> run-code --filename=.conductor/evidence/20261127-arena-readability-pass/capture-corrected.js
+playwright-cli -s=<session> run-code --filename=.conductor/evidence/20261127-arena-readability-pass/capture-corrected-cup.js
+playwright-cli -s=<session> run-code --filename=.conductor/evidence/20261127-arena-readability-pass/capture-wide-corrected.js
+playwright-cli -s=<session> run-code --filename=.conductor/evidence/20261127-arena-readability-pass/capture-establishing-pause.js
+playwright-cli -s=c3p run-code --filename=.conductor/evidence/20261127-arena-readability-pass/measure-projection-corrected.js
+playwright-cli -s=c3v video-start .conductor/evidence/20261127-arena-readability-pass/corrected-arena-action-desktop-1440x900.webm
+playwright-cli -s=c3v run-code --filename=.conductor/evidence/20261127-arena-readability-pass/start-spar-wait-corrected.js
+playwright-cli -s=c3v video-stop
+playwright-cli -s=c3p console
+playwright-cli -s=c3l console
+playwright-cli -s=c3v console
+playwright-cli close-all
+playwright-cli list
+```
+
+Every capture/seed run returned `errors: []`. `seed-corrected.js` reported
+`Sunbeam Comet`, `spark_ray`/`ray`/`baby`, save key `apex.save` version 26,
+`scrollWidth == innerWidth` at every viewport, and `bodyClass:"is-reduced"`
+only for reduced runs. Spar panels reported `Ember Drake · Seed 0 · Press`.
+Cup runs seeded day 7, phase `cup`, `Sunbeam Comet`, status `player-turn`,
+next opponent `Pondskipper Grub`, session keys including `bracket`, `seed`,
+`nextPlayerRound`, `nextOpponent`. Console totals were `Total messages: 2
+(Errors: 0, Warnings: 0)` for each checked session; `playwright-cli list` →
+`(no browsers)` after `close-all`. Vite was left running.
+
+The final corrected WebM used the `Ember Drake`/seed 0 cast: 13 frames at
+200 ms intervals had stable names `Sunbeam Comet · Press` / `Ember Drake ·
+Press`, `scrollWidth 1440`, and `.hit-vignette` peaks 0.81, 0.702206 and
+0.63385 with `errors: []`. Suggested GIF transcode (left for the primary;
+target ≤10 MB, ≤10 fps):
+
+```text
+ffmpeg -y -i .conductor/evidence/20261127-arena-readability-pass/corrected-arena-action-desktop-1440x900.webm -vf "fps=8,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128[p];[b][p]paletteuse=dither=bayer" -loop 0 .conductor/media/20261127-arena-readability-pass/arena-readability.gif
+```
+
+### Reopened gate
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `bun run verify && bun run build` (browsers closed) | 0 | 4623 pass / 1 skip / 0 fail, 683529 expect() calls, 4624 tests / 446 files / 93.74s; Biome clean on 1063 files; voxel determinism byte-identical for all archetype stages and 5 props; Vite `index-DhAc5cQZ.js` 1,114.41 kB (gzip 309.22 kB), only the pre-existing chunk advisory. |
+| `bun test --check --parallel=4 --timeout 120000 apps/client/src/module-size.test.ts` | 0 | 5 pass / 0 fail / 15 expect() calls, 318 ms, bun 1.4.4 (38afee6c8) 4x PARALLEL. |
+
+No app, test, generated or lockfile change was made to obtain these results.
+
+### Reopened measurements
+
+HUD names were read live in every flow. All had `textOverflow: clip`,
+`whiteSpace: normal`, `overflowWrap: anywhere`, `scrollWidth == clientWidth`,
+and no ellipsis. `fullyVisible: false` in landscape is caused only by a 2 px
+line-box delta (`scrollHeight 39` / `clientHeight 37`); vision OCR transcribed
+both full names with no visible clipping.
+
+| Viewport / flow | Left name (scroll/client; scrollH/clientH; rect) | Right name | Dense vignette |
+| --- | --- | --- | --- |
+| 1440×900 broadcast | `Sunbeam Comet · Press`; 210/210 | `Ember Drake · Press`; 180/180 | 0.741629 (peak 0.81) |
+| 1440×900 cinematic | 210/210 | 180/180 | 0.260035 (late 0.81) |
+| 1440×900 reduced | 210/210 | 180/180 | 0 (`dense: null`) |
+| 1440×900 cup | `Sunbeam Comet · Press`; 210/210 | `Pondskipper Grub`; 163/163 | 0.701377 |
+| 393×852 broadcast | `Sunbeam Comet · Press`; 65/65; 44/43; x 61 y 113 w 64.5 h 42.9 | `Ember Drake · Press`; 65/65; 44/43; x 267.5 | 0.644147 (peak 0.793069) |
+| 393×852 cinematic | 65/65; 44/43; x 61 | 65/65; 44/43; x 267.5 | 0.77344 (final 0.81) |
+| 393×852 reduced | 77/77; 44/43 | 71/71; 44/43 | 0 (`dense: null`) |
+| 393×852 cup | `Sunbeam Comet · Press`; 65/65; 44/43 | `Pondskipper Grub`; 65/65; 29/29 | 0.81 |
+| 852×393 broadcast | `Sunbeam Comet · Press`; 174/174; 39/37; x 140.7 y 118.3 w 174.1 h 37.4 | `Ember Drake · Press`; 174/174; 39/37; x 537.2 | 0.773916 |
+| 852×393 cinematic | 174/174; 39/37; x 140.7 | 174/174; 39/37; x 537.2 | 0.779455 (late 0.81) |
+| 852×393 reduced | `Sunbeam Comet · Press`; 190/190; 39/37; x 142.1 y 121.5 w 189.3 h 37.2 | `Ember Drake · Press`; 180/180; 20/19; x 530.9 | 0 (`dense: null`) |
+| 852×393 cup | `Sunbeam Comet · Press`; 174/174; 39/37; x 140.7 | `Pondskipper Grub`; 163/163; 20/19; x 548.6 y 127 w 162.7 | 0.41071 (final 0.81) |
+
+`document.documentElement.scrollWidth == innerWidth` at every capture
+(1440/1440, 393/393, 852/852). HUD plates and visible controls stayed inside
+the viewport (landscape plates x 140.7 and x 503, w 208.3; 5 controls in / 0
+out for active spar, 6 in / 0 out for reduced; portrait 4–5 in / 0 out).
+
+Projection was remeasured in-browser with the post-Phase-4 9-argument
+`trackedActionFraming` and real `buildSpot` heights **and radii**. Full source
+output: `projection-measurement-corrected.json`. Measured rigs (height /
+bodyRadius world units): draconic champion 0.362667/0.208, draconic baby
+0.364/0.208, axolotl baby 0.134737/0.16, ray baby 0.073514/0.136, golem baby
+0.450545/0.236, tortoise baby 0.3/0.24. Establishing radius/fov:
+12.5/45 at 1440×900 and 852×393, 18.75/57 at 393×852; all four painted
+corners (±3.2, ±2.4) had `inFrame: true` at every viewport.
+
+Smaller-fighter projected height (percent / CSS px) and centre gap:
+
+| Cast | 1440×900 | 393×852 | 852×393 |
+| --- | --- | --- | --- |
+| draconic vs draconic | 10.70% / 96.3 px; gap 141.4 px | 8.20% / 69.9 px; gap 63.6 px | 10.74% / 42.2 px; gap 62.7 px |
+| ray vs ray (floor) | 8.20% / 73.8 px; gap 235.8 px | 8.20% / 69.9 px; gap 63.6 px | 8.20% / 32.2 px; gap 121.8 px |
+| draconic vs axolotl | 22.32% / 200.9 px; gap 174.7 px | 15.12% / 128.8 px; gap 96.1 px | 22.32% / 87.7 px; gap 76.3 px |
+| ray vs golem | 22.32% / 200.9 px; gap 320.2 px | 10.56% / 90.0 px; gap 37.6 px | 22.32% / 87.7 px; gap 139.8 px |
+| real spar ray vs draconic | 22.32% / 200.9 px; gap 320.2 px | 9.30% / 79.2 px; gap 70.7 px | 22.32% / 87.7 px; gap 139.8 px |
+
+All sampled bodies had `inFrame: true`; tightest case was ray/ray landscape at
+8.20% / 32.2 px, satisfying the 8% / 32 px floor. `extentGapCssPx` remained
+negative in some cases (rendered footprints still overlap at the floor), which
+is consistent with Phase 4's accepted extent-based centre-separation target
+rather than a full pixel gap; representative action beats and broadcast entry
+nevertheless showed two distinct bodies in vision review.
+
+Camera lifecycle was exercised by real saved broadcast/cinematic styles, by
+fresh sessions at each aspect ratio, and by reduced-motion pinning. Reduced
+frames had vignette 0 in every shot, `dense: null`, and no residual shake;
+verdict `battle-stamp ... show ... in` appeared immediately in reduced flows,
+so those stills prove pinning/no-flash rather than clean live action. Dense
+broadcast/cinematic beats peaked at 0.81 with both names readable, no overflow
+and no console/page errors.
+
+Vision review of corrected stills: desktop broadcast entry and cinematic
+action-a showed two separate fighters, bright painted lines, full HUD names and
+no banner; desktop cup entry showed two separate fighters with two painted
+corners visible; portrait broadcast entry showed two separate fighters and no
+clipping; landscape cup entry showed all four inner-square corners and two
+separate fighters; portrait reduced entry showed the verdict banner with front
+corners visible and no HUD clipping. Some later melee beats still converge and
+occlude one body, but this is physical convergence, not the original default
+depth-aligned occlusion.
+
+### Reopened AC mapping
+
+| ID | Reopened status | Evidence |
+| --- | --- | --- |
+| FR-1 / AC-1 | pass | 9-arg projection + real rig radii; worst 8.20% / 32.2 px landscape. |
+| FR-2 / AC-2 | pass with finding | All four corners NDC-in-frame at all viewports; clean visual four-corner proof at 852×393 cup entry; desktop/portrait rely on projection math plus partial visuals. |
+| FR-3 / AC-3 | pass | Corrected broadcast entry and cinematic action beats show two separated fighters; bright arena paint; reduced pin and resize verified. |
+| FR-4 / AC-4 | pass with finding | Corrected rig/radius projection and vision show separated bodies in entry/action beats; later melee convergence can still hide one body. |
+| FR-5 / AC-5 | pass | Full text, clip/normal/anywhere, `scrollWidth == clientWidth`, no OCR clipping at all viewports. |
+| FR-6 / AC-6 | pass with finding | Plate/control bounds and zero overflow; landscape 39/37 line-box delta recorded; dense vignette ≤0.81, no errors. |
+| FR-7 / AC-6 | pass | Dense hits with names intact, no overflow, zero console errors. |
+| NFR-1..NFR-5 / AC-7 gate | pass | Final exact gate 4623 pass / 1 skip / 0 fail; module-size 5/0. |
+| AC-7 terminal proof | partial by design | Primary-owned registry/archive/review/PR remains outside this phase. |
+
+### Reopened deviations and notes
+
+1. `Date.now` pin changed to `2147483648` for the spar panel only, giving
+   `Ember Drake` seed 0; a real `createCreatureFrom(spark_ray)` ray was installed
+   as the player cast. No save/sim code was edited.
+2. No DOM `.click()` was used. Camera/motion state used real sim seams.
+3. Reduced flows resolve to a verdict banner before the first frame, so reduced
+   stills prove pinning/no-flash, not unobstructed action or all four corners.
+4. A clean visual all-four-corners still was obtained at 852×393 only; desktop
+   and portrait use the real `establishingFraming` projection containment plus
+   partial/bright-corner stills. `capture-establishing-pause.js` and
+   `capture-wide-corrected.js` attempts are preserved, not claimed as proof.
+5. Some vision calls returned HTTP 429 rate-limit errors; those were not retried
+   in a tight loop and are not command failures. All usable OCR results are
+   summarized above.
+6. A background projection run on `c3d` stalled behind the clock-pause script;
+   the same script was run successfully on `c3p` and that output was saved as
+   `projection-measurement-corrected.json`.
+7. The original failed evidence and the original WebM are untouched. The GIF
+   was not transcoded; the command above targets
+   `.conductor/media/20261127-arena-readability-pass/arena-readability.gif`.
+8. `git status --short` showed the two evidence files as the only changes;
+   no commits were made. Head remains `795711f8`. All Playwright sessions were
+   closed before the gate; Vite was left running.
+
+## Independent primary verification (reopened pass)
+
+**Result: verified with recorded, non-blocking visual findings.**
+
+The primary independently reviewed the corrected stills directly and through image
+analysis, including six-frame broadcast contact sheets for desktop, portrait and
+landscape and a cinematic desktop contact sheet:
+
+- Desktop broadcast `action-b` through `action-f` show two distinct, contained
+  fighter bodies; the earlier `action-a` transition frame still clips the draconic
+  fighter at the right edge. This is recorded as a transient camera-settling
+  limitation, not hidden; the settled action beats meet the readability criterion.
+- Portrait broadcast frames show both the ray and draconic bodies, with complete
+  HUD names and no horizontal overflow. Landscape broadcast frames show both
+  bodies; the background remains subdued, but floor lines and both silhouettes
+  are readable.
+- Desktop cinematic frames show both bodies and complete HUD names. The landscape
+  cup entry shows all four inner arena corners and two separate fighters.
+- Corrected arena paint/lighting is materially clearer than the rejected first
+  pass: the floor boundary and fighters read against the background in real
+  captures. Dense effects preserve both names and produce no console errors.
+- Reduced-motion portrait remains wide/stable with vignette 0; the immediate
+  victory banner is documented and is not used as proof of live action framing.
+
+Primary automated verification:
+
+- `git diff --name-only 795711f8..HEAD` and the phase log were empty before the
+  two evidence files; only `phase-3.md` and `integrated.md` are working-tree
+  changes. `git diff --check` exits 0.
+- Exact `(bun run verify && bun run build)` re-run exits 0: clean typechecks;
+  **4,623 pass / 1 skip / 0 fail**, 683,529 expect() calls, 4,624 tests across
+  446 files; Biome clean on 1,063 files; every archetype stage and all 5 prop
+  digests byte-identical; Vite `index-DhAc5cQZ.js` 1,114.41 kB with only the
+  pre-existing chunk advisory.
+- Independent exhaustive containment probe
+  `.conductor/evidence/arena-framing-exhaustive-result.json` checked **252,000
+  whole-body corner projections with 0 failures** across five measured body
+  profiles, all 15×15 legal ground-position pairs, and all three viewports.
+- Corrected browser projection data records the tightest rest case at ray/ray
+  landscape **8.20% / 32.2 CSS px** and all four establishing corners in NDC.
+
+GIF proof was produced by the primary from the corrected WebM, trimming its
+ranch/loading preamble:
+
+- `.conductor/media/20261127-arena-readability-pass/arena-readability.gif`
+- 960×540, 8 fps, 64 frames, 8.01 s, 5,077,671 bytes; gitignored and not committed.
+
+Recorded findings for strict review: the initial desktop broadcast transition
+can clip one body before the tracked camera settles; landscape HUD names retain
+a raw 39/37 line-box delta without visible text clipping; a clean desktop or
+portrait all-four-corner still was not obtained, so those viewports rely on real
+projection containment plus partial visuals. None reverses the corrected default
+broadcast separation or the materially improved arena contrast.
