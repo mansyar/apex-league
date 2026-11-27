@@ -22,7 +22,7 @@
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
 | RM-14 | Improve arena camera, lighting, and fighter readability on desktop and mobile | feature | high | — | 20261127-arena-readability-pass | user |
-| RM-15 | Streamline spar setup with an explicit start action and stable mobile scrolling | refactor | high | RM-13 | — | user |
+| RM-15 | Streamline spar setup with an explicit start action and stable mobile scrolling | refactor | high | RM-13 | 20261128-spar-setup-flow | user |
 | RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | — | user |
 | RM-17 | Reduce repetitive battle-log noise and add pause/replay playback controls | feature | medium | — | — | user |
 | RM-18 | Correct training, move-list, Stable, and Hall of Fame copy inconsistencies | bug | medium | — | — | user |
