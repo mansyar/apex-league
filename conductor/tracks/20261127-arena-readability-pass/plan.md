@@ -84,7 +84,7 @@ The primary appends after acceptance:
 - **Covers:** FR-1, FR-2, FR-3, FR-4, FR-6, AC-1, AC-2, AC-3, AC-4, AC-6, NFR-1, NFR-3, NFR-4, NFR-5
 - **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/roster.ts`, `apps/client/src/roster.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/staging.ts`, `apps/client/src/staging-director.ts`, `apps/client/src/arena.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-4.md`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P4.T1: Separate broadcast fighters and pin whole-body framing** — covers: FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3
   - [ ] **P4.T1.1:** Add failing-first projection tests using measured rendered body extents that require two visibly separated fighter silhouettes at rest and representative legal positions, while preserving the 8% / 32 CSS-pixel floor, full-body containment, mirror layouts, and all three viewports.
