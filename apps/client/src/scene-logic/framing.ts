@@ -1,24 +1,11 @@
 import { ARENA_FRAMING, BASE_FOV } from "../camera/presets"
 
 /**
- * Scene logic - broadcast arena framing compensation for narrow viewports.
- * Split out of scene-logic.ts (ranch_decomposition); behavior unchanged.
- */
-/**
- * Broadcast arena framing compensation for narrow viewports (F6,
- * responsive_foundation_20261013). The fixed broadcast shot was tuned on
- * a wide desktop window; on portrait phones the horizontal field of view
- * shrinks with the aspect and crops the stage corners out of frame.
- *
- * Compensation backs the camera off (radius multiplier) and widens the
- * lens (added vertical FOV) as the aspect narrows past the 1.2
- * reference, with hard caps so a phone gets a usable shot rather than an
- * absurd telescope pull. Landscape keeps the framing untouched.
- *
- * This now drives only the WIDE ESTABLISHING composition. The live action
- * camera tracks the fighters and derives its distance from their positions
- * (see `trackedActionFraming`), so the old "back off + widen" compensation
- * would only shrink the fighters it is meant to make readable.
+ * Arena framing: aspect compensation for the wide establishing shot, plus
+ * the tracked action solve. Split out of scene-logic.ts (ranch_decomposition).
+ * The wide shot backs off and widens as the aspect narrows (capped); the
+ * action camera instead derives its dolly from the live pair so fighters do
+ * not shrink on phones.
  */
 export interface ArenaFramingAdjustment {
   /** Multiplier on the establishing framing radius (>= 1). */
@@ -103,10 +90,18 @@ const SEPARATION_OFFSETS = [
   0, 0.02, 0.04, 0.06, 0.08, 0.12, 0.18, 0.26, 0.4, 0.55,
 ] as const
 
-/** Centre separation as a fraction of summed rendered half-widths. Wide,
- * short rigs (ray wings) cannot get a clear gap while holding the floor on
- * portrait, but this keeps the silhouettes from fully overlapping. */
-const MIN_CENTER_SEPARATION = 0.38
+/** TARGET centre separation as a fraction of summed rendered half-widths.
+ * This is a target, not a guarantee: wide, short rigs (ray wings) cannot
+ * reach it while holding the 8% / 32px floor on portrait. The solver below
+ * falls back to the most separated readable candidate when it is
+ * geometrically unreachable. */
+const TARGET_CENTER_SEPARATION = 0.38
+
+/** Explicit fallback floor for that unreachable-target case. A candidate
+ * scoring at or above this keeps the two silhouettes visibly distinct
+ * instead of fully occluded; containment and the readability floor are
+ * never traded away to reach either separation value. */
+const MIN_DISTINCT_SEPARATION = 0.1
 
 interface BodySample {
   readonly depth: number
@@ -319,14 +314,23 @@ export function trackedActionFraming(
     const readable = candidate.fraction >= READABILITY_FLOOR
     const score =
       candidate.centerGap / Math.max(candidate.halfA + candidate.halfB, 1e-6)
-    if (readable && score >= MIN_CENTER_SEPARATION) {
+    if (readable && score >= TARGET_CENTER_SEPARATION) {
       best = candidate
+      bestScore = score
       break
     }
+    // Explicit fallback: the 0.38 target is not a guarantee. Keep the most
+    // separated candidate that still clears the readability floor, so
+    // containment and the 8% / 32px floor are never traded for separation.
     if (readable && score > bestScore) {
       best = candidate
       bestScore = score
     }
   }
+  // If no candidate is even visibly distinct, the pair is physically
+  // coincident: keep the containment-safe initial solve instead of claiming
+  // a separation that does not exist. Otherwise the chosen pose is either at
+  // the target (target path) or the best achievable readable fallback.
+  if (bestScore < MIN_DISTINCT_SEPARATION) return initial.frame
   return best.frame
 }

@@ -388,25 +388,9 @@ function rigBounds(
 }
 
 describe("arena camera rig — composition lifecycle (AC3/AC6)", () => {
-  test("reduced motion pins the wide shot with no shake or director", () => {
-    const width = 393
-    const height = 852
-    const aspect = width / height
-    const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
-    const rig = createOrbitCamera(
-      camera,
-      fakeCanvas(width, height) as unknown as HTMLElement,
-    )
-    rig.setMode("arena")
-    rig.updateArena(0, 1 / 60, true)
-    const pinned = camera.position.clone()
-    rig.shake(20)
-    rig.updateArena(0.5, 1 / 60, true)
-    expect(camera.position.distanceTo(pinned)).toBe(0)
-    expect(camera.fov).toBeCloseTo(establishingFraming(aspect).fov, 6)
-    rig.dispose()
-  })
-
+  // F2: the former reduced-motion "pins the wide shot" assertion is replaced
+  // by the R1 reduced-motion test below (measured floor, containment,
+  // no-shake and no-director-driven pose at all three viewports).
   test("resize and style switches keep both fighters framed", () => {
     let width = 1440
     let height = 900
@@ -557,6 +541,64 @@ function bodyScreenBox(
 }
 
 const screenWidth = (box: ScreenBox): number => box.maxX - box.minX
+
+/** Separation as a fraction of the two rendered half-widths. This is the
+ * same metric the framing solver scores; a value above zero means the
+ * silhouettes are not fully occluded. */
+const separationFraction = (a: ScreenBox, b: ScreenBox): number =>
+  Math.abs(a.centerX - b.centerX) /
+  Math.max((screenWidth(a) + screenWidth(b)) / 2, 1e-6)
+
+/**
+ * Authoritative browser-measured baby rigs from
+ * `projection-measurement-corrected.json`, not the seed-7 authored fixtures
+ * used by the older separation tests. These are the smallest/ widest cases
+ * that make the 0.38 centre-separation target geometrically unreachable on
+ * portrait while the readability floor and containment must still hold.
+ */
+const MEASURED_BODIES = {
+  ray: { height: 0.073514, radius: 0.136 },
+  draconic: { height: 0.364, radius: 0.208 },
+  golem: { height: 0.450545, radius: 0.236 },
+} as const
+
+/** Project a measured ground footprint through the LIVE rig camera. */
+function liveBodyBox(
+  camera: PerspectiveCamera,
+  p: { x: number; z: number },
+  body: Body,
+): ScreenBox {
+  camera.updateMatrixWorld()
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+  for (const dx of [-body.radius, body.radius]) {
+    for (const dz of [-body.radius, body.radius]) {
+      for (const y of [0, body.height]) {
+        const ndc = new Vector3(p.x + dx, y, p.z + dz).project(camera)
+        minX = Math.min(minX, ndc.x)
+        maxX = Math.max(maxX, ndc.x)
+        minY = Math.min(minY, ndc.y)
+        maxY = Math.max(maxY, ndc.y)
+      }
+    }
+  }
+  const center = new Vector3(p.x, body.height / 2, p.z).project(camera)
+  return { minX, maxX, minY, maxY, centerX: center.x }
+}
+
+function expectLiveContained(
+  camera: PerspectiveCamera,
+  p: { x: number; z: number },
+  body: Body,
+): void {
+  const box = liveBodyBox(camera, p, body)
+  expect(box.minX).toBeGreaterThanOrEqual(-1 - 1e-6)
+  expect(box.maxX).toBeLessThanOrEqual(1 + 1e-6)
+  expect(box.minY).toBeGreaterThanOrEqual(-1 - 1e-6)
+  expect(box.maxY).toBeLessThanOrEqual(1 + 1e-6)
+}
 
 interface PairCheck {
   readonly a: { x: number; z: number }
@@ -783,5 +825,243 @@ describe("broadcast action separates rendered bodies (FR-2, AC-3/AC-4)", () => {
       (0.36 * (screenWidth(liveA) + screenWidth(liveB))) / 2,
     )
     rig.dispose()
+  })
+})
+
+describe("R1 — containment-safe arena lifecycle (F1)", () => {
+  /** Feed the live rig the authoritative measured heights/radii. The same
+   * intent object is the measurement seam; broadcast ignores its choreography. */
+  const feed = (
+    rig: ReturnType<typeof createOrbitCamera>,
+    a: { x: number; z: number },
+    b: { x: number; z: number },
+    cinematic: boolean,
+  ): void => {
+    rig.applyDirectorIntent({
+      look: { x: b.x, y: 0.7, z: b.z },
+      radiusMult: cinematic ? 1.05 : 1,
+      azimuthDelta: cinematic ? 0.4 : 0,
+      elevationDelta: cinematic ? 0.08 : 0,
+      cut: false,
+      focusA: { x: a.x, y: 0, z: a.z },
+      focusB: { x: b.x, y: 0, z: b.z },
+      heightA: MEASURED_BODIES.ray.height,
+      heightB: MEASURED_BODIES.draconic.height,
+      bodyRadiusA: MEASURED_BODIES.ray.radius,
+      bodyRadiusB: MEASURED_BODIES.draconic.radius,
+    })
+  }
+
+  test("first and every broadcast update contains all measured corners", () => {
+    for (const vp of VIEWPORTS) {
+      const camera = new PerspectiveCamera(
+        BASE_FOV,
+        vp.width / vp.height,
+        0.1,
+        200,
+      )
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      let a = { x: -1.6, z: 0 }
+      let b = { x: 1.6, z: 0 }
+      rig.setMode("arena")
+      feed(rig, a, b, false)
+      for (let i = 0; i < 8; i++) {
+        if (i === 4) {
+          a = { x: -3.2, z: -2.4 }
+          b = { x: 3.2, z: 2.4 }
+          feed(rig, a, b, false)
+        }
+        rig.updateArena(i / 60, 1 / 60, false)
+        expectLiveContained(camera, a, MEASURED_BODIES.ray)
+        expectLiveContained(camera, b, MEASURED_BODIES.draconic)
+      }
+      rig.dispose()
+    }
+  })
+
+  test("first and every cinematic update contains all measured corners", () => {
+    for (const vp of VIEWPORTS) {
+      const camera = new PerspectiveCamera(
+        BASE_FOV,
+        vp.width / vp.height,
+        0.1,
+        200,
+      )
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      const a = { x: -1.6, z: 0 }
+      const b = { x: 1.6, z: 0 }
+      rig.setMode("arena")
+      rig.setArenaStyle("cinematic")
+      feed(rig, a, b, true)
+      for (let i = 0; i < 8; i++) {
+        rig.updateArena(i / 60, 1 / 60, false)
+        expectLiveContained(camera, a, MEASURED_BODIES.ray)
+        expectLiveContained(camera, b, MEASURED_BODIES.draconic)
+      }
+      rig.dispose()
+    }
+  })
+})
+
+describe("R1 — reduced-motion readable broadcast (F2)", () => {
+  test("tracks the readable broadcast shot with no shake or director pose", () => {
+    for (const vp of VIEWPORTS) {
+      const aspect = vp.width / vp.height
+      const camera = new PerspectiveCamera(BASE_FOV, aspect, 0.1, 200)
+      const rig = createOrbitCamera(
+        camera,
+        fakeCanvas(vp.width, vp.height) as unknown as HTMLElement,
+      )
+      const a = { x: -1.6, z: 0 }
+      const b = { x: 1.6, z: 0 }
+      const ray = MEASURED_BODIES.ray
+      const golem = MEASURED_BODIES.golem
+      rig.setMode("arena")
+      // Extreme choreography in the intent must not reach a reduced frame;
+      // only the live measurements/focus are consumed.
+      rig.applyDirectorIntent({
+        look: { x: b.x, y: 2, z: b.z },
+        radiusMult: 4,
+        azimuthDelta: 0.4,
+        elevationDelta: 0.2,
+        cut: true,
+        focusA: { x: a.x, y: 0, z: a.z },
+        focusB: { x: b.x, y: 0, z: b.z },
+        heightA: ray.height,
+        heightB: golem.height,
+        bodyRadiusA: ray.radius,
+        bodyRadiusB: golem.radius,
+      })
+      rig.shake(20)
+      rig.updateArena(0, 1 / 60, true)
+      const expected = trackedActionFraming(
+        aspect,
+        a,
+        b,
+        actionPose,
+        ray.height,
+        golem.height,
+        undefined,
+        ray.radius,
+        golem.radius,
+      )
+      const expectedPos = new Vector3(
+        expected.targetX +
+          expected.radius *
+            Math.cos(expected.elevation) *
+            Math.sin(expected.azimuth),
+        expected.targetY + expected.radius * Math.sin(expected.elevation),
+        expected.targetZ +
+          expected.radius *
+            Math.cos(expected.elevation) *
+            Math.cos(expected.azimuth),
+      )
+      expect(camera.position.distanceTo(expectedPos)).toBeLessThan(1e-6)
+      expect(camera.fov).toBeCloseTo(expected.fov, 6)
+      expect(camera.fov).not.toBeCloseTo(establishingFraming(aspect).fov, 3)
+      for (const [p, body] of [
+        [a, ray],
+        [b, golem],
+      ] as const) {
+        const fraction = bodyFraction(aspect, expected, p.x, p.z, body.height)
+        expect(fraction).toBeGreaterThanOrEqual(0.08)
+        expect(fraction * vp.height).toBeGreaterThanOrEqual(32)
+        expectLiveContained(camera, p, body)
+      }
+      const pinned = camera.position.clone()
+      rig.applyDirectorIntent({
+        look: { x: a.x, y: 1.5, z: a.z },
+        radiusMult: 0.5,
+        azimuthDelta: -0.4,
+        elevationDelta: 0.2,
+        cut: true,
+        focusA: { x: a.x, y: 0, z: a.z },
+        focusB: { x: b.x, y: 0, z: b.z },
+        heightA: ray.height,
+        heightB: golem.height,
+        bodyRadiusA: ray.radius,
+        bodyRadiusB: golem.radius,
+      })
+      rig.updateArena(0.5, 1 / 60, true)
+      expect(camera.position.distanceTo(pinned)).toBe(0)
+      expect(camera.fov).toBeCloseTo(expected.fov, 6)
+      rig.dispose()
+    }
+  })
+})
+
+describe("R1 — real measured ray separation fallback (F4)", () => {
+  test("portrait ray casts stay distinct when the 0.38 target is unreachable", () => {
+    const vp = VIEWPORTS[1]
+    const aspect = vp.width / vp.height
+    const pairs = [
+      { name: "ray/ray", a: MEASURED_BODIES.ray, b: MEASURED_BODIES.ray },
+      { name: "ray/golem", a: MEASURED_BODIES.ray, b: MEASURED_BODIES.golem },
+      {
+        name: "ray/draconic",
+        a: MEASURED_BODIES.ray,
+        b: MEASURED_BODIES.draconic,
+      },
+    ] as const
+    for (const pair of pairs) {
+      for (const mirror of [1, -1] as const) {
+        const a = { x: -1.6 * mirror, z: 0 }
+        const b = { x: 1.6 * mirror, z: 0 }
+        const frame = trackedActionFraming(
+          aspect,
+          a,
+          b,
+          actionPose,
+          pair.a.height,
+          pair.b.height,
+          undefined,
+          pair.a.radius,
+          pair.b.radius,
+        )
+        const boxA = bodyScreenBox(
+          aspect,
+          frame,
+          a.x,
+          a.z,
+          pair.a.height,
+          pair.a.radius,
+        )
+        const boxB = bodyScreenBox(
+          aspect,
+          frame,
+          b.x,
+          b.z,
+          pair.b.height,
+          pair.b.radius,
+        )
+        for (const box of [boxA, boxB]) {
+          expect(box.minX).toBeGreaterThanOrEqual(-1 - 1e-6)
+          expect(box.maxX).toBeLessThanOrEqual(1 + 1e-6)
+          expect(box.minY).toBeGreaterThanOrEqual(-1 - 1e-6)
+          expect(box.maxY).toBeLessThanOrEqual(1 + 1e-6)
+        }
+        for (const [p, body] of [
+          [a, pair.a],
+          [b, pair.b],
+        ] as const) {
+          const fraction = bodyFraction(aspect, frame, p.x, p.z, body.height)
+          expect(fraction).toBeGreaterThanOrEqual(0.08)
+          expect(fraction * vp.height).toBeGreaterThanOrEqual(32)
+        }
+        const score = separationFraction(boxA, boxB)
+        // Explicit fallback floor: silhouettes remain distinct, not fully
+        // occluded. The 0.38 value is a target, not a guarantee; these real
+        // wide/short portrait profiles cannot reach it at the readability
+        // floor, so the solver keeps its best readable candidate.
+        expect(score).toBeGreaterThanOrEqual(0.1)
+        expect(score).toBeLessThan(0.38)
+      }
+    }
   })
 })
