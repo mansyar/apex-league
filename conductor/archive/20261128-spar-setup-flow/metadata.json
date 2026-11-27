@@ -8,8 +8,8 @@
   "depends_on": ["RM-13"],
   "doc_sync": "complete",
   "id": "20261128-spar-setup-flow",
-  "last_checkpoint": null,
-  "pr_url": null,
+  "last_checkpoint": "b3816d25b6d028b1f98213cba80ad56af50d749d9",
+  "pr_url": "https://github.com/mansyar/apex-league/pull/103",
   "priority": "high",
   "progress": {
     "phases_total": 3,
@@ -24,7 +24,7 @@
   "reverted_at": null,
   "spec": "spec.md",
   "plan": "plan.md",
-  "status": "in_progress",
+  "status": "complete",
   "title": "Streamline spar setup with an explicit start action and stable mobile scrolling",
   "type": "refactor",
   "updated_at": "2026-11-28T09:40:00+11:00"

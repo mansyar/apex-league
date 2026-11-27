@@ -73,4 +73,4 @@
 - [x] **Track: Polish the falcon silhouette for speedster readability** - [20261126-falcon-silhouette-polish](./archive/20261126-falcon-silhouette-polish/index.md) - feature - low
 - [x] **Track: Fix HUD pointer interception and isolate modal input across desktop and mobile** - [20261127-hud-pointer-modal-input](./archive/20261127-hud-pointer-modal-input/index.md) - bug - high
 - [x] **Track: Improve arena camera, lighting, and fighter readability** - [20261127-arena-readability-pass](./archive/20261127-arena-readability-pass/index.md) - feature - high
-- [~] **Track: Streamline spar setup with an explicit start action and stable mobile scrolling** - [20261128-spar-setup-flow](./tracks/20261128-spar-setup-flow/index.md) - refactor - high
+- [x] **Track: Streamline spar setup with an explicit start action and stable mobile scrolling** - [20261128-spar-setup-flow](./archive/20261128-spar-setup-flow/index.md) - refactor - high
