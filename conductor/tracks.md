@@ -72,4 +72,4 @@
 - [x] **Track: Deduplicate verdict presentation across spar, cup, and battle HUD** - [20261126-verdict-presentation-dedup](./archive/20261126-verdict-presentation-dedup/index.md) - refactor - low
 - [x] **Track: Polish the falcon silhouette for speedster readability** - [20261126-falcon-silhouette-polish](./archive/20261126-falcon-silhouette-polish/index.md) - feature - low
 - [x] **Track: Fix HUD pointer interception and isolate modal input across desktop and mobile** - [20261127-hud-pointer-modal-input](./archive/20261127-hud-pointer-modal-input/index.md) - bug - high
-- [ ] **Track: Improve arena camera, lighting, and fighter readability** - [20261127-arena-readability-pass](./tracks/20261127-arena-readability-pass/index.md) - feature - high
+- [~] **Track: Improve arena camera, lighting, and fighter readability** - [20261127-arena-readability-pass](./tracks/20261127-arena-readability-pass/index.md) - feature - high
