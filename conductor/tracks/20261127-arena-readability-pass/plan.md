@@ -37,7 +37,7 @@
 - **Covers:** FR-3, FR-4, FR-5, FR-6, AC-4, AC-5, AC-6, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `apps/client/src/arena.ts`, `apps/client/src/battle-hud.css`, `apps/client/src/battleHud.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/battleHud.test.ts apps/client/src/scene-logic/framing.test.ts apps/client/src/director.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Redress the arena shell and lighting** — covers: FR-3, FR-4, AC-4
   - [ ] **P2.T1.1:** Retune arena-only floor, backdrop, stands/crowd, visual spacing, ambient/hemi/key/rim lighting, and fog for formal-competition contrast.
