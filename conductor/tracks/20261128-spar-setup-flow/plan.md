@@ -36,7 +36,7 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, AC-3, AC-4
 - **Touches:** `apps/client/src/spar/panel.ts`, `apps/client/src/spar.css`, `apps/client/src/spar/panel.test.ts`
 - **Verification:** `bun test --check apps/client/src/spar/panel.test.ts` + `playwright-cli` visual (393×852, 852×393, 1440×900, console clean) + `biome check` on touched files
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P2.T1: Build sticky Start footer** — covers: FR-3
   - [ ] **P2.T1.1: Footer shows armed tactic + active rule; Start launches existing runBattle path**
