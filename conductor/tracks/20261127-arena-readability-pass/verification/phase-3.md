@@ -806,3 +806,67 @@ establishing capture was optional and was not repeated.
 Every capture/seed/beat `run-code` returned `errors:[]`.
 `playwright-cli close-all` was run and `playwright-cli list` returned
 `(no browsers)` before the primary gate. No evidence file was committed.
+
+## Corrective pass — final-code r3 matrix (2026-11-28)
+
+Owner-authorized corrective pass after the R1 red evidence. Production change
+vs Rework 2: containment-only `ANIM_HEIGHT_PAD = 0.2` envelope with rebalanced
+aim in `trackedActionFraming`; readability floor stays on measured rest height.
+Full TDD red/green is in `phase-R1.md`; this section records only the fresh
+real-browser proof at final code. No tracked source was changed in this browser
+pass, and no evidence file was committed.
+
+### Method and boundaries
+
+- Same real-sim day-7 cup seed as r1/r2 (`r1-seed.js`: spark_ray baby
+  `Sunbeam Comet`, cinematic, non-reduced, `Pondskipper Grub`; `ok:true`,
+  `errors:[]`). Real pointer/keyboard navigation only (`Enter Cup`,
+  `.cup-screen-bracket .cup-cta-go`, `Press`, last `Step into the arena`).
+- Scripts: `r3-capture-cup.js` (waits past the 0.75 s establishing beat, then
+  `action-a..d` at 240 ms), `r3-establishing.js` (live-app establishing beat and
+  the after-cut frame), `r3-capture-gif.js` (48 frames at ~125 ms for the GIF).
+  Console totals `2 messages, 0 errors, 0 warnings` per session; every
+  `run-code` returned `errors:[]`.
+- Artifacts use the `r3-` prefix under
+  `.conductor/evidence/20261127-arena-readability-pass/`.
+
+### Cup cinematic action (final code, all three viewports)
+
+| Viewport | Action pose | ray fraction / px | drake fraction / px | HUD widths |
+| --- | --- | --- | --- | --- |
+| 1440×900 | `radius:1.9150898979648858, fov:20.011849046899478, targetY:0.2813335` | `0.108785` / `97.907` | `0.201332` / `181.199` | `210/210`, `163/163` |
+| 393×852 | `radius:~2.0855, targetY:0.2813` | `0.0999` / `85.1` | in-frame | `65/65`, `65/65` |
+| 852×393 | `radius:1.9150898979648858, fov:20.011849046899478, targetY:0.2813335` | `0.108785` / `42.753` | `0.201332` / `79.124` | `174/174`, `163/163` |
+
+Wide establishing at final code: 1440×900 and 852×393 `radius:12.5,
+fov:45`; 393×852 `radius:18.75, fov:57`; all four painted corners
+`inFrame:true` at every viewport.
+
+Vision verdict on the 12 final-code stills
+(`r3-cup-cinematic-action-{a,b,c,d}-{1440x900,393x852,852x393}.png`):
+**zero viewport-edge clip on all 12**; heads clear of HUD and scenery on every
+beat (beat-a carries dark stands behind the heads — in-scene background, not
+crop); fighters distinguishable by color/shape on every beat. Full measured
+JSON and per-beat notes are in `phase-R1.md` (corrective appendix).
+
+### Live-app establishing (final code)
+
+`r3-establishing-1440x900.png` and `r3-establishing-393x852.png` show all four
+painted corners cleanly in the live app (HUD overlay present, expected).
+`r3-establishing-852x393.png` shows all four corners in-viewport with partial
+fighter-HUD-panel overlap plus the arena fade still transitioning — a disclosed
+clock-timing cosmetic, not a geometry defect (static NDC: all four `inFrame`).
+`r3-after-cut-*` stills confirm the hard cut lands on tight action.
+
+### GIF (final code)
+
+Fresh transcode from the 48 final-code frames (replaces the pre-corrective
+GIF, never attached to a PR):
+
+```text
+ffmpeg -y -framerate 8 -i .conductor/evidence/20261127-arena-readability-pass/r3-gif-frame-%02d.png -vf "scale=960:-1,split[s0][s1];[s0]palettegen=max_colors=256[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5" .conductor/media/20261127-arena-readability-pass/arena-readability.gif
+```
+
+Result: 960 px wide, 8 fps, 48 frames, ~2.9 MB, gitignored and not committed.
+Mid-sequence frame spot-check: both fighters fully in frame, HUD names intact,
+no clip.
