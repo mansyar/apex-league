@@ -99,17 +99,22 @@ The primary appends after acceptance:
 **Checkpoint:** c6e2963d
 **Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-4.md
 
-<!--
-Review fixes are appended by `conductor-review` as:
-
 ## Phase R1: Review Fixes
 
-- **Goal:** Resolve review findings ...
-- **Depends on:** Phase 3
-- **Covers:** review findings
-- **Touches:** ...
-- **Verification:** ...
+- **Goal:** Resolve strict-review F1–F4: make every camera lifecycle frame containment-safe, use readable tracked broadcast framing under reduced motion without shake/flash, cover real-smallest-ray separation with an explicit tested fallback, and complete the cup-cinematic/establishing browser evidence matrix.
+- **Depends on:** Phase 3 and Phase 4
+- **Covers:** F1, F2, F3, F4, FR-1, FR-2, FR-4, FR-6, FR-7, AC-1, AC-2, AC-3, AC-6, AC-7
+- **Touches:** `apps/client/src/camera/rig.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-R1.md`, `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
+- **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts` plus `bun run verify && bun run build` and real-browser lifecycle/cup-cinematic/establishing proof at `1440×900`, `393×852`, and `852×393`
 - **Status:** pending
 
-- [ ] **R1.T1: Resolve <finding ID>** — covers: <finding ID>
--->
+- [ ] **R1.T1: Make camera lifecycle containment-safe and reduced motion readable** — covers: F1, F2
+  - [ ] **R1.T1.1:** Add failing-first live-rig tests from `setMode("arena")` that check whole-body containment on the first and every transition update for broadcast and cinematic, without skipping early frames.
+  - [ ] **R1.T1.2:** Cut or safely interpolate to the first measured action pose; use tracked broadcast action framing for reduced motion while suppressing shake, flash, director choreography, and ornamental motion. Pin rest-floor/containment at all three viewports.
+- [ ] **R1.T2: Test real-smallest-ray separation and explicit fallback** — covers: F4
+  - [ ] **R1.T2.1:** Add the real browser-measured ray/golem/ray-draconic profiles to separation tests; enforce the advertised threshold where feasible and explicitly document/test the justified fallback where it is geometrically unreachable.
+- [ ] **R1.T3: Complete browser evidence and integrated verification** — covers: F3
+  - [ ] **R1.T3.1:** Capture real cup cinematic action and clean desktop/portrait all-four-corner establishing stills at all required viewports; update the evidence matrix and verify clean consoles.
+  - [ ] **R1.T3.2:** Run the exact phase command, full gate, and scope audit; record results in `phase-R1.md` and `integrated.md`.
+
+**Result:** pending
