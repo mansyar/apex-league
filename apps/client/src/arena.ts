@@ -5,45 +5,48 @@ import { RANCH_SKY } from "./environment"
 import { disposeObject3D } from "./scene-utils"
 
 /**
- * Broadcast arena environment: a neutral show floor (no moss, no golden
- * hour), a boundary ring that frames the fight, tiered stands with crowd
- * silhouettes, and a cool, even "broadcast" lighting rig that replaces
- * the ranch's warm one while the arena is on screen.
+ * Broadcast arena environment: a bright, formal competition floor (no
+ * moss, no golden hour), a painted boundary that frames the fight, tiered
+ * stands with crowd silhouettes, and an even, high-key "broadcast" rig
+ * that replaces the ranch's warm one while the arena is on screen. Floor
+ * and backdrop stay mid-tone so the tracked fighter silhouettes keep their
+ * contrast against the set.
  */
 
 /**
  * Arena backdrop tone. Fog dissolves everything past the stands into this
- * navy, so the horizon behind the crowd reads as a darkened bowl instead
- * of the ranch's sunset.
+ * slate navy, so the horizon behind the crowd reads as a lit venue bowl
+ * instead of the ranch's sunset. Darker than the floor: it is the constant
+ * backdrop fighters are read against.
  */
-export const ARENA_SKY = 0x0f1320
+export const ARENA_SKY = 0x2b3447
 
-/** Fog distance where the stands end and the darkened bowl takes over. */
-export const ARENA_FOG_NEAR = 18
-export const ARENA_FOG_FAR = 34
+/** Fog distance where the stands end and the venue bowl takes over. */
+export const ARENA_FOG_NEAR = 22
+export const ARENA_FOG_FAR = 44
 
 /**
- * Neutral show-floor palette. Cool slate floor, cream painted lines,
- * charcoal stands — everything defers to the two fighters and the type
- * colors of their specials.
+ * Formal-competition palette. Lighter cool slate floor, crisp cream paint,
+ * mid-dark stands and near-black crowd silhouettes: bright enough to read
+ * as a lit arena, but not so bright that a fighter disappears into it.
  */
-const FLOOR_COLOR = 0x434956
-const FLOOR_LINE_COLOR = 0xd6cdb8
-const STAND_COLOR = 0x2e323d
-const STAND_EMISSIVE = 0x232838
-const CROWD_COLOR = 0x1d2130
+const FLOOR_COLOR = 0x545e6d
+const FLOOR_LINE_COLOR = 0xe6ddc7
+const STAND_COLOR = 0x363c49
+const STAND_EMISSIVE = 0x2b3140
+const CROWD_COLOR = 0x202534
 
 /**
- * Lighting rig targets (applied at blend = 1). Keys are cooler and more
- * even than the ranch: white-grey key straight from above, cool fill, no
- * warm bounce. Retune them together — they are one exposure, like the
- * ranch palette is one golden hour.
+ * Lighting rig targets (applied at blend = 1). Fill and rim rise most so
+ * shadows open up without flattening the key's modelling; everything stays
+ * cooler and more even than the ranch's golden hour. Retune them together
+ * — they are one exposure.
  */
 const RIG = {
-  ambient: { color: 0x556070, intensity: 0.75 },
-  hemi: { sky: 0xb8c4d6, ground: 0x2a3040, intensity: 1.2 },
-  key: { color: 0xf2f6fa, intensity: 2.6 },
-  rim: { color: 0x9fb4d0, intensity: 0.8 },
+  ambient: { color: 0x6d7888, intensity: 1 },
+  hemi: { sky: 0xd0dae8, ground: 0x3d4659, intensity: 1.5 },
+  key: { color: 0xf4f8fc, intensity: 2.8 },
+  rim: { color: 0xb9cde6, intensity: 1.1 },
 } as const
 
 export interface ArenaHandle {
@@ -119,7 +122,7 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
     new THREE.MeshBasicMaterial({
       color: FLOOR_LINE_COLOR,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.7,
     }),
   )
   centerRing.rotation.x = -Math.PI / 2
@@ -163,17 +166,18 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
     group.add(step)
   }
 
-  // Backdrop: an inside-out navy dome just beyond the stands. It swallows
-  // the ranch's sunset dome and any fog seams, so the bowl reads as one
-  // darkened venue regardless of what the ranch sky is doing outside it.
+  // Backdrop: an inside-out slate dome just beyond the stands. It swallows
+  // the ranch's sunset dome and any fog seams, so the bowl reads as one lit
+  // venue regardless of what the ranch sky is doing outside it.
   const backdrop = new THREE.Mesh(
     new THREE.SphereGeometry(20, 32, 16),
-    new THREE.MeshBasicMaterial({ color: 0x232838, side: THREE.BackSide }),
+    new THREE.MeshBasicMaterial({ color: 0x303a4e, side: THREE.BackSide }),
   )
   group.add(backdrop)
 
   // Crowd: instanced capsule silhouettes packed on the two upper tiers.
-  // In the arena fog they read as a dark bowl of heads, no detail needed.
+  // Against the brighter stands they read as a dark bowl of heads, no
+  // detail needed.
   const tierDefsForCrowd = [tierDefs[1], tierDefs[2]]
   const CROWD_PER_TIER = 44
   const crowdCount = CROWD_PER_TIER * tierDefsForCrowd.length
@@ -228,7 +232,7 @@ export function buildArena(scene: THREE.Scene): ArenaHandle {
   scene.add(group)
 
   // Fog swap: the ranch dissolves into its dusk amber, the arena into the
-  // darkened bowl. Blend lerps the shared fog color so the swap reads as
+  // lit slate bowl. Blend lerps the shared fog color so the swap reads as
   // one continuous cross-fade, not a cut.
   const fog = scene.fog instanceof THREE.Fog ? scene.fog : null
   const ranchFog = new THREE.Color(RANCH_SKY)

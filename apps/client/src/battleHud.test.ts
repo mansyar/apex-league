@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import {
   chevronsFor,
   createBattleHud,
@@ -370,5 +372,69 @@ describe("createBattleHud — verdict stamp DOM and lifecycle", () => {
     expect(stamp.classList.contains("battle-stamp-show")).toBe(false)
     expect(stamp.classList.contains("battle-stamp-in")).toBe(false)
     expect(stamp.className).toBe("battle-stamp")
+  })
+})
+
+/**
+ * FR-5 / AC-5: the placard must show the entire plate name — including
+ * doctrine and rule suffixes and mirrored-rightPlate names — at every
+ * viewport. The FakeElement harness covers the DOM text; the stylesheet
+ * assertions cover the layout properties that decide whether that text is
+ * actually visible instead of being clipped or ellipsed.
+ */
+describe("full battle HUD names (FR-5, AC-5)", () => {
+  const css = readFileSync(join(import.meta.dir, "battle-hud.css"), "utf8")
+  const nameRules = (): string[] =>
+    [...css.matchAll(/\.battle-hud-name\s*\{([^}]*)\}/g)].map(
+      (match) => match[1] ?? "",
+    )
+
+  test("no name rule may clip, nowrap, or ellipsis the full name", () => {
+    const rules = nameRules()
+    // One base rule plus the phone-tier override.
+    expect(rules.length).toBeGreaterThanOrEqual(2)
+    for (const rule of rules) {
+      expect(rule).not.toMatch(/white-space\s*:\s*nowrap/)
+      expect(rule).not.toMatch(/overflow\s*:\s*hidden/)
+      expect(rule).not.toMatch(/text-overflow\s*:\s*ellipsis/)
+    }
+  })
+
+  test("a name can wrap long words and shrink inside its plate", () => {
+    const base = nameRules()[0] ?? ""
+    expect(base).toMatch(/overflow-wrap\s*:\s*(anywhere|break-word)/)
+    expect(base).toMatch(/min-width\s*:\s*0\s*;/)
+  })
+
+  test("both plates carry the complete long and mirrored name text", () => {
+    const fight = {
+      owned: {
+        name: "Ember Drake",
+        key: "left",
+        element: "fire",
+        maxHp: 40,
+        doctrine: "kite",
+        rule: "read_tell",
+      },
+      rival: {
+        name: "Tide Axolotl",
+        key: "right",
+        element: "water",
+        maxHp: 44,
+        doctrine: "counter",
+        rule: "never_trade",
+      },
+    } as unknown as HudFight
+    const overlay = new FakeElement()
+    createBattleHud(overlay as unknown as HTMLElement).show(fight)
+    const root = overlay.children[0] ?? new FakeElement()
+    const left = find(root, "battle-plate-left")
+    const right = find(root, "battle-plate-right")
+    expect(find(left, "battle-hud-name").textContent).toBe(
+      "Ember Drake · Kite · Read the tell",
+    )
+    expect(find(right, "battle-hud-name").textContent).toBe(
+      "Tide Axolotl · Counter · Never trade",
+    )
   })
 })
