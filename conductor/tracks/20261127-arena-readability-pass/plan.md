@@ -57,15 +57,18 @@
 - **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures and measurements at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`
-- **Status:** in_progress
+- **Status:** blocked
 
 - [ ] **P3.T1: Capture real spar and cup evidence** — covers: FR-7, AC-6, AC-7
-  - [ ] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
-  - [ ] **P3.T1.2:** Measure fighter projection, establishing-shot corner bounds, name bounds/ellipsis, page overflow, safe areas, and camera lifecycle behavior.
+  - [x] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
+  - [x] **P3.T1.2:** Measure fighter projection, establishing-shot corner bounds, name bounds/ellipsis, page overflow, safe areas, and camera lifecycle behavior.
   - [ ] **P3.T1.3:** Cover reduced motion and dense effects, then produce stills plus a short GIF with clean consoles.
-- [ ] **P3.T2: Run the integrated gate and scope audit** — covers: AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
-  - [ ] **P3.T2.1:** Run the full configured stack and module-size test; record exact results.
-  - [ ] **P3.T2.2:** Prove no sim/state/save/balance, audio, voxel/determinism, ranch/non-battle UI, dependency, or generated-file diff.
+- [x] **P3.T2: Run the integrated gate and scope audit** — covers: AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
+  - [x] **P3.T2.1:** Run the full configured stack and module-size test; record exact results.
+  - [x] **P3.T2.2:** Prove no sim/state/save/balance, audio, voxel/determinism, ranch/non-battle UI, dependency, or generated-file diff.
+
+**Result:** blocked
+**Blocking evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md — default broadcast action can occlude one fighter and arena contrast remains weak in independent visual review.
 
 <!--
 The primary appends after acceptance:
