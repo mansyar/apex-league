@@ -14,24 +14,21 @@
 - **Covers:** FR-1, FR-2, FR-4, FR-6, AC-1, AC-2, AC-3, AC-6, NFR-1, NFR-4, NFR-5
 - **Touches:** `apps/client/src/camera/presets.ts`, `apps/client/src/camera/rig.ts`, `apps/client/src/director.ts`, `apps/client/src/director.test.ts`, `apps/client/src/scene-logic/framing.ts`, `apps/client/src/scene-logic/framing.test.ts`, `apps/client/src/scene-logic.test.ts`, `apps/client/src/roster.ts`, `apps/client/src/roster.test.ts`, `apps/client/src/staging.ts`, `apps/client/src/staging-director.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/scene-logic/framing.test.ts apps/client/src/scene-logic.test.ts apps/client/src/director.test.ts apps/client/src/roster.test.ts apps/client/src/dense-playback.test.ts apps/client/src/module-size.test.ts`
-- **Status:** blocked
+- **Status:** verified
 
-**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum measured from each cast rig's rendered rest height; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Primary verification found that simulation-cylinder heights overstate several rendered rigs, so Phase 1 now measures and feeds each fighter's actual normalized rest height into framing. Prior blocked evidence remains in `verification/phase-1.md`.
+**Decision:** Owner approved tracked action framing plus a separate wide establishing shot. AC-1 retains the universal 8% / 32 CSS-pixel rest-position minimum measured from each cast rig's rendered rest height; AC-2 now requires every legal fighter position in frame during action and all arena corners in the establishing shot. Primary verification found that simulation-cylinder heights overstate several rendered rigs, so Phase 1 measures and feeds each fighter's actual normalized rest height into framing. The owner explicitly authorized the primary's final one-line formatter correction after the rework cap; prior blocked evidence remains in `verification/phase-1.md`.
 
-- [ ] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
-  - [ ] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, measured rendered body-height extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners; pin the scene-logic barrel surface.
-  - [ ] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest using each cast rig's measured normalized height, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
-  - [ ] **P1.T1.3:** Observe and record a genuine failing baseline before implementation.
-- [ ] **P1.T2: Retune broadcast and cinematic framing** — covers: FR-1, FR-2, FR-4, AC-1, AC-2, AC-3
-  - [ ] **P1.T2.1:** Tune tracked broadcast/cinematic action framing, a wide establishing composition, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
-  - [ ] **P1.T2.2:** Preserve `MM_TO_WORLD`, legal arena bounds, fighter scale, reduced-motion pinning, and shared ranch behavior.
+- [x] **P1.T1: Pin measurable arena framing and camera composition** — covers: FR-1, FR-2, FR-6, AC-1, AC-2, AC-3
+  - [x] **P1.T1.1:** Add projection/table tests for desktop, portrait, and landscape, measured rendered body-height extremes, mirror layouts, all legal fighter positions, and a wide establishing shot covering arena corners; pin the scene-logic barrel surface.
+  - [x] **P1.T1.2:** Pin 8% viewport height / 32 CSS-pixel minimum at rest using each cast rig's measured normalized height, every legal fighter position in frame during action, all arena corners in the establishing shot, reduced-motion broadcast behavior, and resize/style-switch lifecycle.
+  - [x] **P1.T1.3:** Observe and record a genuine failing baseline before implementation.
+- [x] **P1.T2: Retune broadcast and cinematic framing** — covers: FR-1, FR-2, FR-4, AC-1, AC-2, AC-3
+  - [x] **P1.T2.1:** Tune tracked broadcast/cinematic action framing, a wide establishing composition, responsive radius/FOV behavior, rig lifecycle, and cinematic director intents.
+  - [x] **P1.T2.2:** Preserve `MM_TO_WORLD`, legal arena bounds, fighter scale, reduced-motion pinning, and shared ranch behavior.
 
-<!--
-The primary appends after acceptance:
 **Result:** verified
-**Checkpoint:** <short-sha>
+**Checkpoint:** 82f713ef
 **Evidence:** conductor/tracks/20261127-arena-readability-pass/verification/phase-1.md
--->
 
 ## Phase 2: Arena dressing, lighting, and HUD names
 
