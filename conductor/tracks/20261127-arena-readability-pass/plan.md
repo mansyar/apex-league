@@ -57,7 +57,7 @@
 - **Covers:** FR-7, AC-6, AC-7, NFR-1, NFR-2, NFR-3, NFR-4, NFR-5
 - **Touches:** `conductor/tracks/20261127-arena-readability-pass/verification/phase-3.md`, `conductor/tracks/20261127-arena-readability-pass/verification/integrated.md`, gitignored `.conductor/evidence/20261127-arena-readability-pass/`
 - **Verification:** `bun run verify && bun run build` plus `playwright-cli` captures and measurements at desktop `1440×900`, phone portrait `393×852`, and phone landscape `852×393`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Capture real spar and cup evidence** — covers: FR-7, AC-6, AC-7
   - [ ] **P3.T1.1:** Capture broadcast and cinematic spar/cup action views plus a wide arena establishing shot at all three viewports using real UI and real sim seeding seams.
