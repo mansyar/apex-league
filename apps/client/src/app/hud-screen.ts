@@ -8,6 +8,7 @@ import {
   clearSave,
   type GameState,
   getSpecies,
+  getTrainingProgram,
   hatchGiftEgg,
   inspectSaveImport,
   markHintSeen,
@@ -21,6 +22,7 @@ import {
   type TrainingProgram,
 } from "@apex/sim"
 import { careCueForEvent } from "../audio/careCues"
+import { growthView } from "../growth"
 import type { GraduationFlow } from "../graduation"
 import { createHud, type Hud } from "../hud"
 import { morningAfterDebriefGate } from "../hud/copy-morning-after"
@@ -58,6 +60,52 @@ export const withMorningAfterDebrief = (
       )
       debriefSaidDay = say.nextDay
       if (say.line !== null) hud.announceMorningAfter(say.line)
+    },
+  }
+}
+
+/**
+ * FR-3/AC-3: the eve-of-advance summary. Every clause is read from the
+ * current state — assigned program, unspent AP and its dawn reset, ration
+ * readiness, and the current growth-gate tally. Nothing predicts tomorrow's
+ * AP budget or promises an evolution: both are settled by advanceDay.
+ */
+export function advanceSummaryLine(state: GameState): string {
+  const program = state.creature?.trainingProgram
+  const clauses = [
+    program
+      ? `${getTrainingProgram(program).label} assigned for tonight`
+      : "No training assigned for tonight",
+    `${state.actionPoints} AP unspent — resets at dawn`,
+    state.creature?.fedToday
+      ? "Ration served tonight — resets at dawn"
+      : "Ration not served tonight",
+  ]
+  const growth = growthView(state)
+  if (growth && growth.rows.length > 0) {
+    const met = growth.rows.filter((row) => row.met).length
+    clauses.push(`Growth ${met} of ${growth.rows.length} conditions met`)
+  }
+  return clauses.join(" · ")
+}
+
+/**
+ * Paint the eve-of-advance summary after the routine update, so the line is
+ * already on screen when the player considers the Advance Day tap. The dock
+ * owns the CTA and the line is appended beside it in hud/shell.ts; this
+ * wrapper is the only in-scope seam with a per-update Hud (hud.ts,
+ * hud/update.ts are not owned by this phase). No DOM in tests: the guard
+ * keeps the pure wrapper usable with a fake Hud.
+ */
+export const withAdvanceSummary = (hud: Hud): Hud => {
+  const routineUpdate = hud.update
+  return {
+    ...hud,
+    update: (state: GameState) => {
+      routineUpdate(state)
+      if (typeof document === "undefined") return
+      const line = document.querySelector<HTMLElement>(".advance-summary")
+      if (line) line.textContent = advanceSummaryLine(state)
     },
   }
 }
@@ -283,5 +331,7 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
   })
 
   // The debrief wrapper above owns the ritual-day say chain (review F4).
-  return withMorningAfterDebrief(hud, () => store.pendingMorningAfter())
+  return withAdvanceSummary(
+    withMorningAfterDebrief(hud, () => store.pendingMorningAfter()),
+  )
 }
