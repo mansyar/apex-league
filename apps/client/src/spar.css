@@ -327,17 +327,13 @@
   align-items: center;
   gap: 8px;
   text-align: left;
+  /* FR-4/FR-6: the inline state line wraps instead of widening the chip. */
+  max-width: min(240px, calc(100vw - 28px));
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 
 .spar-button .kit-chip-glyph {
   color: var(--accent);
-}
-
-/* FR-4/FR-6: the inline state line wraps inside the pinned chip instead of
-   growing it into the viewport edge (393px portrait and landscape). */
-.spar-button {
-  max-width: min(240px, calc(100vw - 28px));
 }
 
 /* Phone tier (F10): the score bug parks in this corner on phones

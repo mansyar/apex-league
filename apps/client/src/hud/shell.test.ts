@@ -27,7 +27,7 @@ describe("dock hierarchy — grouping with frozen order (FR-5)", () => {
       /\.command-dock \.kit-cta\s*\{[^}]*background:\s*var\(--accent\)/,
     )
     expect(style).toMatch(
-      /\.command-dock \.dock-row \.kit-button[\s\S]*?background:\s*rgb\(255 236 200 \/ 0\.04\)/,
+      /\.dock-row \.kit-button[\s\S]*?background:\s*rgb\(255 236 200 \/ 0\.04\)/,
     )
   })
 

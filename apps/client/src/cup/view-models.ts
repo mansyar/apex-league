@@ -217,7 +217,8 @@ export function chipView(input: {
       ? "Promotion Cup awaits"
       : `${gate.boss.name} holds the final`
     : `${tierName} ${input.ladder.subTier} · ${input.ladder.points} pts`
-  const nextCupDay = Math.ceil((input.day + 1) / CUP_INTERVAL_DAYS) * CUP_INTERVAL_DAYS
+  const nextCupDay =
+    Math.ceil((input.day + 1) / CUP_INTERVAL_DAYS) * CUP_INTERVAL_DAYS
   const state = resumable
     ? "Ready · Cup in progress"
     : cupToday

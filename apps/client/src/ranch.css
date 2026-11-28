@@ -1101,9 +1101,9 @@
   padding-top: 8px;
 }
 
-.command-dock .dock-row .kit-button,
-.command-dock .dock-train .kit-button,
-.command-dock .dock-graduate .kit-button {
+.dock-row .kit-button,
+.dock-train .kit-button,
+.dock-graduate .kit-button {
   background: rgb(255 236 200 / 0.04);
 }
 

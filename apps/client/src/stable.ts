@@ -134,7 +134,9 @@ export function stableRefusalCopy(reason: StableReason): string {
 export function stableChipState(state: GameState): string {
   const waiting = state.stable.length
   const count =
-    waiting === 0 ? "Empty" : `${waiting} ${waiting === 1 ? "pet" : "pets"} waiting`
+    waiting === 0
+      ? "Empty"
+      : `${waiting} ${waiting === 1 ? "pet" : "pets"} waiting`
   const lock =
     state.phase === "cup" ? ` · ${stableRefusalCopy("cup-phase")}` : ""
   return `Open · ${count}${lock}`

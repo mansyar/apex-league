@@ -128,7 +128,7 @@ function of(node: FakeElement): HTMLElement {
 }
 
 function click(node: FakeElement): void {
-  for (const listener of node.listeners["click"] ?? []) listener({})
+  for (const listener of node.listeners.click ?? []) listener({})
 }
 
 interface Spy {
@@ -518,12 +518,17 @@ describe("spar chip inline state (FR-4, AC-4, FR-6)", () => {
         .find((body) => /max-width\s*:/.test(body)) ?? ""
     expect(rule).toMatch(/max-width\s*:\s*min\(/)
     const chipRule = cssFor("ui/kit.css")
-    expect(chipRule).toMatch(/\.kit-chip-state\s*\{[^}]*overflow-wrap\s*:\s*anywhere/)
+    expect(chipRule).toMatch(
+      /\.kit-chip-state\s*\{[^}]*overflow-wrap\s*:\s*anywhere/,
+    )
     expect(chipRule).toMatch(/\.kit-chip-state\s*\{[^}]*font-size\s*:\s*9px/)
   })
 })
 
-function findByClass(root: FakeElement, token: string): FakeElement | undefined {
+function findByClass(
+  root: FakeElement,
+  token: string,
+): FakeElement | undefined {
   if (root.className.includes(token)) return root
   for (const child of root.children) {
     const hit = findByClass(child, token)

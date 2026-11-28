@@ -21,13 +21,13 @@ import {
   buildStableChip,
   buildStableModal,
   STABLE_EMPTY_COPY,
+  type StableModalOptions,
   stableChipState,
   stableChipVisible,
   stableMeta,
   stableRefusalCopy,
   stableRow,
   stableRows,
-  type StableModalOptions,
   syncStableChip,
 } from "./stable"
 import { stableRenameRefusalCopy } from "./stable-rename"
@@ -251,7 +251,10 @@ class FakeElement {
 
   querySelector(selector: string): FakeElement | null {
     for (const child of this.children) {
-      if (selector === ".kit-chip-state" && child.classList.contains(selector.slice(1))) {
+      if (
+        selector === ".kit-chip-state" &&
+        child.classList.contains(selector.slice(1))
+      ) {
         return child
       }
       const nested = child.querySelector(selector)

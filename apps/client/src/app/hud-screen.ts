@@ -22,8 +22,8 @@ import {
   type TrainingProgram,
 } from "@apex/sim"
 import { careCueForEvent } from "../audio/careCues"
-import { growthView } from "../growth"
 import type { GraduationFlow } from "../graduation"
+import { growthView } from "../growth"
 import { createHud, type Hud } from "../hud"
 import { morningAfterDebriefGate } from "../hud/copy-morning-after"
 import type { MorningAfterDerivation } from "../morning-after/derive"

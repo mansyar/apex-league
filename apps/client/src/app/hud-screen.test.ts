@@ -61,10 +61,12 @@ const ranchState = (): GameState => {
   const starter = chooseStarter(createInitialState(), "fire_drake", 42)
   const assigned = assignTraining(starter, "power")
   if (!assigned.ok) throw new Error("test setup: training assignment failed")
+  const creature = assigned.state.creature
+  if (!creature) throw new Error("test setup: no partner")
   return {
     ...assigned.state,
     actionPoints: 3,
-    creature: { ...assigned.state.creature!, fedToday: false },
+    creature: { ...creature, fedToday: false },
   }
 }
 
@@ -79,10 +81,12 @@ describe("the eve-of-advance summary (FR-3, AC-3)", () => {
 
   test("reports ration readiness and unassigned training without invention", () => {
     const state = ranchState()
+    const creature = state.creature
+    if (!creature) throw new Error("test setup: no partner")
     const fed = {
       ...state,
       actionPoints: 0,
-      creature: { ...state.creature!, fedToday: true, trainingProgram: null },
+      creature: { ...creature, fedToday: true, trainingProgram: null },
     }
     const line = advanceSummaryLine(fed)
     expect(line).toContain("No training assigned for tonight")
