@@ -14,7 +14,7 @@
 - **Covers:** FR-1, FR-2, FR-6, AC-1, AC-2
 - **Touches:** `apps/client/src/hud/update.ts`, `apps/client/src/hud/dock.ts`, `apps/client/src/hud/programs.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/hud/dock.test.ts apps/client/src/hud/programs.test.ts apps/client/src/hud/copy.test.ts apps/client/src/hud/plates.test.ts`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P1.T1: Inline care state** — covers: FR-1, AC-1
   - [ ] **P1.T1.1:** Render cost + inline reason for each care button in every dry-run gating state.
