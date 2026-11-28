@@ -37,14 +37,14 @@ The primary appends after acceptance:
 - **Covers:** FR-3, FR-4, FR-5, AC-3, AC-4
 - **Touches:** `apps/client/src/spar/panel.ts`, `apps/client/src/cup/view-models.ts`, `apps/client/src/cup/entry.ts`, `apps/client/src/stable.ts`, `apps/client/src/app/hud-screen.ts`, `apps/client/src/hud/shell.ts`, `apps/client/src/ui/kit.css`, `apps/client/src/ranch.css`, `apps/client/src/spar.css`, `apps/client/src/cup.css`, related `*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/cup/view-models.test.ts apps/client/src/spar/panel.test.ts apps/client/src/stable.test.ts apps/client/src/app/hud-screen.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P2.T1: Inline chip state** — covers: FR-4, AC-4
-  - [ ] **P2.T1.1:** Spar/cup/stable chips render state + hint/reason inline (no partner, off-day, refusal paths).
-  - [ ] **P2.T1.2:** Regression tests for each chip gating state.
-- [ ] **P2.T2: Advance summary + grouping** — covers: FR-3, FR-5, AC-3
-  - [ ] **P2.T2.1:** Eve-of-advance summary (assigned training, AP reset, day effects) from HUD-available info.
-  - [ ] **P2.T2.2:** Grouping/emphasis pass, order frozen; short-landscape seats keep new text in-frame.
+- [x] **P2.T1: Inline chip state** — covers: FR-4, AC-4
+  - [x] **P2.T1.1:** Spar/cup/stable chips render state + hint/reason inline (no partner, off-day, refusal paths).
+  - [x] **P2.T1.2:** Regression tests for each chip gating state.
+- [x] **P2.T2: Advance summary + grouping** — covers: FR-3, FR-5, AC-3
+  - [x] **P2.T2.1:** Eve-of-advance summary (assigned training, AP reset, day effects) from HUD-available info.
+  - [x] **P2.T2.2:** Grouping/emphasis pass, order frozen; short-landscape seats keep new text in-frame.
 
 <!--
 Review fixes are appended by `conductor-review` as:
