@@ -33,12 +33,9 @@ import { announcer } from "../ui/announcer"
 import type { ScreenDeps } from "./screen-deps"
 
 /**
- * The ritual day's one coach debrief (postcup_morning_after FR-6): the
- * banked derivation leads the ticker on the first update that sees it
- * during a sim day — exactly one say, then the routine chain resumes
- * (the ticker holds the line until then). pickDebriefCopy via
- * hud/copy-morning-after is the only copy source; the latch is
- * client-held, so a reload simply finds nothing banked.
+ * postcup_morning_after FR-6: the banked derivation leads the ticker once per
+ * ritual day. pickDebriefCopy is the only copy source; the client-held latch
+ * resets on reload.
  */
 export const withMorningAfterDebrief = (
   hud: Hud,
@@ -65,10 +62,9 @@ export const withMorningAfterDebrief = (
 }
 
 /**
- * FR-3/AC-3: the eve-of-advance summary. Every clause is read from the
- * current state — assigned program, unspent AP and its dawn reset, ration
- * readiness, and the current growth-gate tally. Nothing predicts tomorrow's
- * AP budget or promises an evolution: both are settled by advanceDay.
+ * FR-3/AC-3: eve-of-advance facts from current state only — program, unspent
+ * AP and its dawn reset, ration readiness, growth tally. No predicted budget
+ * or promised evolution; advanceDay settles both.
  */
 export function advanceSummaryLine(state: GameState): string {
   const program = state.creature?.trainingProgram
@@ -90,12 +86,9 @@ export function advanceSummaryLine(state: GameState): string {
 }
 
 /**
- * Paint the eve-of-advance summary after the routine update, so the line is
- * already on screen when the player considers the Advance Day tap. The dock
- * owns the CTA and the line is appended beside it in hud/shell.ts; this
- * wrapper is the only in-scope seam with a per-update Hud (hud.ts,
- * hud/update.ts are not owned by this phase). No DOM in tests: the guard
- * keeps the pure wrapper usable with a fake Hud.
+ * Paints the summary after the routine update, before the CTA tap. hud/shell
+ * appends the line; this wrapper is the in-scope per-update seam. The DOM
+ * guard keeps it usable with a fake Hud in tests.
  */
 export const withAdvanceSummary = (hud: Hud): Hud => {
   const routineUpdate = hud.update
@@ -111,11 +104,8 @@ export const withAdvanceSummary = (hud: Hud): Hud => {
 }
 
 /**
- * The care HUD (composition-root split). `screens.ts` owns the battle screens;
- * the HUD's handler object outgrew the 12 KB module cap on its own, so it lives
- * here — the object itself is unchanged, and `main.ts` still builds it at the
- * boot position the inline object held (after the import modal, before the
- * store fanout).
+ * The care HUD (composition-root split): handlers that used to sit inline in
+ * main.ts, kept separate from the battle screens and the store fanout.
  */
 export interface HudScreenDeps extends ScreenDeps {
   graduation: GraduationFlow

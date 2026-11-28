@@ -16,24 +16,17 @@ import { buildResetModal } from "./settings"
 import type { HudShell, HudShellHandlers, HudViewState } from "./types"
 
 /**
- * The HUD's shell: every plate, modal and dock is built and wired here, in
- * the order createHud always built them, and the interaction state the daily
- * update has to see (the picker, the two collapsible corners, the inline
- * rename) lives on `view`. Values stay `update`'s business — this module only
- * builds, binds, and re-renders through the injected pass.
+ * Builds and wires every plate, modal and dock in createHud's order. `view`
+ * holds interaction state (picker, collapsed corners, inline rename); values
+ * stay `update`'s business.
  */
 export function createHudShell(
   root: HTMLElement,
   handlers: HudShellHandlers,
 ): HudShell {
-  // Corner clusters collapse by clicking their headers (session-only:
-  // always expanded on load). The creature plate starts collapsed on narrow
-  // viewports — the stacked plates would otherwise eat the whole scene —
-  // and in a short landscape window (852x393), where the expanded plate's
-  // head row has no clear seat under the lineage plate. The dock's default
-  // comes from its width-class decision (hud/dock-collapse) and re-derives
-  // when the viewport crosses a tier, while an explicit head click holds
-  // for the session.
+  // Corners collapse by header click (session-only). The creature plate starts
+  // folded on narrow or short-landscape viewports; the dock default comes from
+  // dock-collapse and re-derives at each width tier.
   const startsCollapsed = window.matchMedia("(max-width: 767.98px)").matches
   const plateStartsFolded =
     startsCollapsed ||
