@@ -86,9 +86,8 @@ export function advanceSummaryLine(state: GameState): string {
 }
 
 /**
- * Paints the summary after the routine update, before the CTA tap. hud/shell
- * appends the line; this wrapper is the in-scope per-update seam. The DOM
- * guard keeps it usable with a fake Hud in tests.
+ * Paints the summary after the routine update. hud/shell appends the line;
+ * this wrapper is the per-update seam, DOM-guarded for fake-Hud tests.
  */
 export const withAdvanceSummary = (hud: Hud): Hud => {
   const routineUpdate = hud.update
@@ -98,7 +97,10 @@ export const withAdvanceSummary = (hud: Hud): Hud => {
       routineUpdate(state)
       if (typeof document === "undefined") return
       const line = document.querySelector<HTMLElement>(".advance-summary")
-      if (line) line.textContent = advanceSummaryLine(state)
+      if (line) {
+        const next = advanceSummaryLine(state)
+        if (line.textContent !== next) line.textContent = next
+      }
     },
   }
 }

@@ -126,4 +126,35 @@ describe("the eve-of-advance summary (FR-3, AC-3)", () => {
       else sandbox.document = original
     }
   })
+
+  test("an unchanged summary is not rewritten into the live region", () => {
+    const state = ranchState()
+    let stored = advanceSummaryLine(state)
+    let writes = 0
+    const target = {} as { textContent: string }
+    Object.defineProperty(target, "textContent", {
+      configurable: true,
+      get: () => stored,
+      set: (next: string) => {
+        writes += 1
+        stored = next
+      },
+    })
+    const sandbox = globalThis as unknown as { document?: unknown }
+    const original = sandbox.document
+    sandbox.document = {
+      querySelector: (selector: string) =>
+        selector === ".advance-summary" ? target : null,
+    }
+    try {
+      const hud = withAdvanceSummary(hudDouble([]))
+      hud.update(state)
+      expect(writes).toBe(0) // same text: no re-announcement
+      hud.update({ ...state, actionPoints: state.actionPoints + 1 })
+      expect(writes).toBe(1) // a real change still paints once
+    } finally {
+      if (original === undefined) delete sandbox.document
+      else sandbox.document = original
+    }
+  })
 })
