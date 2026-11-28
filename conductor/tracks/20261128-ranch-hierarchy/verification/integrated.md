@@ -10,10 +10,10 @@
 
 `bun run verify && bun run build` exited 0:
 
-- Unit suite: 4671 pass, 1 skip, 0 fail (4672 tests across 447 files, 685446 `expect()` calls, 139.24s).
+- Unit suite: 4671 pass, 1 skip, 0 fail (4672 tests across 447 files, 685446 `expect()` calls, 139.24s; re-run at the final evidence head: 138.71s).
 - Static: `bun run check` and Biome clean (1066 files, no fixes applied).
 - Determinism: green for all 18 creatures and 5 props.
-- Build: Vite transformed 443 modules in 493ms; `dist/index.html` 2.13 kB, CSS 73.48 kB, JS 1117.52 kB (gzip 310.27 kB). The >500 kB chunk-size notice is non-fatal.
+- Build: Vite transformed 443 modules in 493ms (441ms on the final re-run); `dist/index.html` 2.13 kB, CSS 73.48 kB, JS 1117.52 kB (gzip 310.27 kB). The >500 kB chunk-size notice is non-fatal.
 - Module-size caps and all phase-level named checks remain green.
 
 ## Cross-phase regression summary
