@@ -218,7 +218,7 @@ export function buildCommandDock(handlers: {
     const btn = button({
       label,
       glyph,
-      cost: "1 AP",
+      cost: AP_COST_LINE,
       onClick: () => handlers.onCare(action),
     })
     const state = buttonStateLine()
@@ -233,7 +233,7 @@ export function buildCommandDock(handlers: {
   const trainButton = button({
     label: trainButtonLabel(null),
     glyph: icons.train,
-    cost: "1 AP",
+    cost: AP_COST_LINE,
     tag: "",
   })
   const trainName = trainButton.querySelector<HTMLElement>(".kit-button-name")
