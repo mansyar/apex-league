@@ -95,6 +95,13 @@ export function createHudShell(
     onGraduate: () => handlers.onGraduate(),
   })
   const { root: cluster, dockHead, trainButton } = dock
+  // FR-3: the eve-of-advance summary sits beside the Advance Day CTA, after
+  // it in the frozen dock order. createHudScreen paints it on every update;
+  // the CTA itself stays enabled and keeps its handler and position.
+  const advanceSummary = document.createElement("p")
+  advanceSummary.className = "advance-summary"
+  advanceSummary.setAttribute("role", "status")
+  cluster.append(advanceSummary)
 
   // Settings cluster (top-left) + reset modal — the modal owns the three
   // settings chips now; the HUD cluster keeps only the entry chip.
