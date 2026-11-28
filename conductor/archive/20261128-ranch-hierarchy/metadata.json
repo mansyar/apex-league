@@ -8,9 +8,9 @@
   "depends_on": ["RM-13"],
   "doc_sync": "complete",
   "id": "20261128-ranch-hierarchy",
-  "last_checkpoint": "3d932c12ff8e2c0b85ad77b17f1e48beeaea8b22",
+  "last_checkpoint": "28b59bc2b238fcc084afba097b26b9b47aae05d7",
   "plan": "plan.md",
-  "pr_url": null,
+  "pr_url": "https://github.com/mansyar/apex-league/pull/104",
   "priority": "high",
   "progress": {
     "phases_total": 3,
@@ -24,7 +24,7 @@
   "review_rounds": 2,
   "review_verdict": "PASS",
   "spec": "spec.md",
-  "status": "in_progress",
+  "status": "complete",
   "title": "Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit",
   "type": "refactor",
   "updated_at": "2026-11-28T13:43:58+11:00"
