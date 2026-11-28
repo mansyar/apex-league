@@ -147,6 +147,38 @@ describe("the program picker rows", () => {
     expect(allPrimariesCapped(capped)).toBe(true)
     expect(programRows(capped).every((row) => row.disabled)).toBe(true)
   })
+
+  test("picker rows keep their capped, tonight and assigned lines in every gate", () => {
+    // AC-2: the rows carry their own state as text, so the picker never
+    // depends on the train button's tooltip to explain a gate.
+    const capped = trained({ atk: TRAINING_CAP })
+    expect(programRow(capped, "power").tonight).toBe("ATK capped")
+    expect(programRow(capped, "endurance").tonight).toBe("+1 HP")
+    expect(programRow(capped, "power").tradeoff).toBe(
+      "ATK +1/night — DEF on breakthrough nights",
+    )
+
+    const noAp = { ...fresh, actionPoints: 0 }
+    expect(programRow(noAp, "power").tonight).toBe("+1 ATK")
+    expect(programRow(noAp, "power").disabled).toBe(false)
+
+    const assignedRing = programRow(assigned("ring"), "ring")
+    expect(assignedRing.assigned).toBe(true)
+    expect(assignedRing.tonight).toBe("+1 ATK · +5 MOOD · +2 BOND")
+
+    const allCapped = trained({
+      hp: TRAINING_CAP,
+      atk: TRAINING_CAP,
+      def: TRAINING_CAP,
+      spd: TRAINING_CAP,
+    })
+    expect(programRows(allCapped).map((row) => row.tonight)).toEqual([
+      "ATK capped",
+      "HP capped",
+      "SPD capped",
+      "ATK capped",
+    ])
+  })
 })
 
 describe("the picker's roving tab stop", () => {

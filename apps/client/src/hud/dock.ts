@@ -1,5 +1,7 @@
 import {
+  CARE_AP_COST,
   type CareAction,
+  type CareResult,
   type GameState,
   TRAINING_PROGRAMS,
   type TrainingProgram,
@@ -18,6 +20,20 @@ const ACTIONS: Array<{ action: CareAction; label: string; glyph: string }> = [
   { action: "play", label: "Play", glyph: icons.play },
 ]
 
+/** The AP cost line shared by care and training, so the badge and the inline
+ * read can never disagree. */
+const AP_COST_LINE = `${CARE_AP_COST} AP`
+
+/**
+ * A care button's visible read from its sim dry-run (FR-1): its state, cost,
+ * and — when blocked — the reason, all in one line of text. The reason is the
+ * same coach copy the tooltip uses; the line makes it readable on touch.
+ */
+export function careButtonLine(result: CareResult): string {
+  if (result.ok) return `Ready · ${AP_COST_LINE}`
+  return `Unavailable · ${AP_COST_LINE} · ${REJECTION_COPY[result.reason]}`
+}
+
 /** Why the train control is available or closed, as pure data. */
 export interface TrainButtonState {
   disabled: boolean
@@ -28,6 +44,8 @@ export interface TrainButtonState {
   /** The AP badge, or null once a program is set — a re-point is free. */
   cost: string | null
   focus: boolean
+  /** The same state, cost and reason as visible inline text (FR-2). */
+  line: string
 }
 
 /**
@@ -50,6 +68,7 @@ export function trainButtonState(
       label,
       cost: null,
       focus,
+      line: `Unavailable · ${AP_COST_LINE} · Nothing left to train for now.`,
     }
   }
   if (actionPoints === 0 && !program) {
@@ -59,14 +78,17 @@ export function trainButtonState(
       label,
       cost: null,
       focus,
+      line: `Unavailable · ${AP_COST_LINE} · ${REJECTION_COPY["no-ap"]}`,
     }
   }
   return {
     disabled: false,
     reason: null,
     label,
-    cost: program === null ? "1 AP" : null,
+    cost: program === null ? AP_COST_LINE : null,
     focus,
+    line:
+      program === null ? `Ready · ${AP_COST_LINE}` : "Ready · Free re-point",
   }
 }
 
@@ -88,11 +110,18 @@ export interface CommandDockRefs {
   /** The collapsed head's one-fact read: the assigned program. */
   dockHeadMeta: HTMLElement
   dockRow: HTMLElement
-  actionButtons: Array<{ button: HTMLButtonElement; action: CareAction }>
+  actionButtons: Array<{
+    button: HTMLButtonElement
+    action: CareAction
+    /** The visible state/cost/reason line under the label. */
+    state: HTMLElement
+  }>
   dockTrain: HTMLElement
   trainButton: HTMLButtonElement
   trainName: HTMLElement | null
   trainCost: HTMLElement | null
+  /** The train button's visible state/cost/reason line. */
+  trainState: HTMLElement
   picker: HTMLElement
   pickerRows: PickerRowRefs[]
   advance: HTMLElement
@@ -143,6 +172,13 @@ function pickerRow(
   return { button: entry, name, tradeoff, blurb, note, assigned, id }
 }
 
+/** The always-visible second line a dock button uses for its state and cost. */
+function buttonStateLine(): HTMLElement {
+  const line = document.createElement("span")
+  line.className = "kit-button-state"
+  return line
+}
+
 /**
  * Bottom-right command dock (broadcast kit plate): care buttons, the
  * train control with its inline program picker, and the Advance Day CTA.
@@ -185,8 +221,10 @@ export function buildCommandDock(handlers: {
       cost: "1 AP",
       onClick: () => handlers.onCare(action),
     })
+    const state = buttonStateLine()
+    btn.append(state)
     dockRow.append(btn)
-    return { button: btn, action }
+    return { button: btn, action, state }
   })
   // Train control and its inline program picker. Opening or closing the
   // picker spends nothing — only a first assignment of the day can.
@@ -200,6 +238,8 @@ export function buildCommandDock(handlers: {
   })
   const trainName = trainButton.querySelector<HTMLElement>(".kit-button-name")
   const trainCost = trainButton.querySelector<HTMLElement>(".kit-button-cost")
+  const trainState = buttonStateLine()
+  trainButton.append(trainState)
   dockTrain.append(trainButton)
 
   const picker = document.createElement("div")
@@ -260,6 +300,7 @@ export function buildCommandDock(handlers: {
     trainButton,
     trainName,
     trainCost,
+    trainState,
     picker,
     pickerRows,
     advance,

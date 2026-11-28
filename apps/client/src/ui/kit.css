@@ -301,6 +301,20 @@
   color: var(--accent);
 }
 
+/* FR-6: state, cost and the disabled reason stay as text in the button itself.
+   Spanning the named columns puts the read on its own row without changing
+   the base grid for kit buttons that have no state line. */
+.kit-button-state {
+  grid-column: 1 / -1;
+  color: var(--ink-dim);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
 .kit-button-tag {
   grid-area: tag;
   align-self: center;

@@ -1,12 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import {
+  type CareRejection,
   type Creature,
   createCreature,
+  createInitialState,
   TRAINING_CAP,
   type TrainingProgram,
 } from "@apex/sim"
 import { REJECTION_COPY } from "./copy"
-import { trainButtonState } from "./dock"
+import { careButtonLine, trainButtonState } from "./dock"
 
 const fresh = createCreature("fire_drake", 42)
 
@@ -18,6 +20,35 @@ function assigned(program: TrainingProgram | null): Creature {
   return { ...fresh, trainingProgram: program }
 }
 
+describe("care buttons' inline state", () => {
+  test("a ready action shows its state and AP cost without a reason", () => {
+    expect(careButtonLine({ ok: true, state: createInitialState() })).toBe(
+      "Ready · 1 AP",
+    )
+  })
+
+  const reasons: CareRejection[] = [
+    "no-creature",
+    "no-ap",
+    "not-sick",
+    "too-sick",
+    "too-tired",
+  ]
+  for (const reason of reasons) {
+    test(`${reason} shows cost and reason in the button's own text`, () => {
+      expect(careButtonLine({ ok: false, reason })).toBe(
+        `Unavailable · 1 AP · ${REJECTION_COPY[reason]}`,
+      )
+    })
+  }
+
+  test("pins the no-AP wording used by every gated care button", () => {
+    expect(careButtonLine({ ok: false, reason: "no-ap" })).toBe(
+      "Unavailable · 1 AP · No AP left today.",
+    )
+  })
+})
+
 describe("the train control", () => {
   test("invites a pick when nothing is assigned", () => {
     expect(trainButtonState(fresh, 3)).toEqual({
@@ -26,6 +57,7 @@ describe("the train control", () => {
       label: "Choose tonight's training",
       cost: "1 AP",
       focus: false,
+      line: "Ready · 1 AP",
     })
   })
 
@@ -45,6 +77,7 @@ describe("the train control", () => {
       label: "Training: Power Lifting",
       cost: null,
       focus: true,
+      line: "Ready · Free re-point",
     })
   })
 
@@ -55,6 +88,7 @@ describe("the train control", () => {
       label: "Choose tonight's training",
       cost: null,
       focus: false,
+      line: "Unavailable · 1 AP · No AP left today.",
     })
   })
 
@@ -71,6 +105,7 @@ describe("the train control", () => {
       label: "Choose tonight's training",
       cost: null,
       focus: false,
+      line: "Unavailable · 1 AP · Nothing left to train for now.",
     })
   })
 
