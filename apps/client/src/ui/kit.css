@@ -301,7 +301,7 @@
   color: var(--accent);
 }
 
-/* FR-6: state, cost and the disabled reason stay as text in the button itself.
+/* FR-1/FR-2: state, cost and the disabled reason stay as text in the button itself.
    Spanning the named columns puts the read on its own row without changing
    the base grid for kit buttons that have no state line. */
 .kit-button-state {

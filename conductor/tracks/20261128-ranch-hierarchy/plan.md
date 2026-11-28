@@ -14,14 +14,14 @@
 - **Covers:** FR-1, FR-2, FR-6, AC-1, AC-2
 - **Touches:** `apps/client/src/hud/update.ts`, `apps/client/src/hud/dock.ts`, `apps/client/src/hud/programs.ts`, `apps/client/src/hud/copy-care.ts`, `apps/client/src/hud/*.test.ts`
 - **Verification:** `bun test --check --parallel=4 --timeout 120000 apps/client/src/hud/dock.test.ts apps/client/src/hud/programs.test.ts apps/client/src/hud/copy.test.ts apps/client/src/hud/plates.test.ts`
-- **Status:** in_progress
+- **Status:** verified
 
-- [ ] **P1.T1: Inline care state** — covers: FR-1, AC-1
-  - [ ] **P1.T1.1:** Render cost + inline reason for each care button in every dry-run gating state.
-  - [ ] **P1.T1.2:** Regression tests pinning each state/reason rendering.
-- [ ] **P1.T2: Inline train state** — covers: FR-2, AC-2
-  - [ ] **P1.T2.1:** Train button state/cost/reason inline (including free re-point) + picker row lines.
-  - [ ] **P1.T2.2:** Regression tests across capped / 0-AP / assigned states.
+- [x] **P1.T1: Inline care state** — covers: FR-1, AC-1
+  - [x] **P1.T1.1:** Render cost + inline reason for each care button in every dry-run gating state.
+  - [x] **P1.T1.2:** Regression tests pinning each state/reason rendering.
+- [x] **P1.T2: Inline train state** — covers: FR-2, AC-2
+  - [x] **P1.T2.1:** Train button state/cost/reason inline (including free re-point) + picker row lines.
+  - [x] **P1.T2.2:** Regression tests across capped / 0-AP / assigned states.
 
 <!--
 The primary appends after acceptance:

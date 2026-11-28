@@ -244,7 +244,7 @@ export function createHudUpdate(
     statusTicker.say(line)
 
     // Disabled states come from the sim itself — a dry-run careAction is
-    // the single source of truth for why an action can't happen. FR-6: the
+    // the single source of truth for why an action can't happen. FR-1: the
     // same reason is written inline too, so touch users never need a hover.
     for (const entry of actionButtons) {
       const result = careAction(state, entry.action)
