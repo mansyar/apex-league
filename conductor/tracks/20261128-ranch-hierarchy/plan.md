@@ -68,7 +68,7 @@ Review fixes are appended by `conductor-review` as:
 - **Covers:** AC-5, AC-6, NFR-1, NFR-2, NFR-3
 - **Touches:** `conductor/tracks/20261128-ranch-hierarchy/verification/*`
 - **Verification:** `bun run verify && bun run build`
-- **Status:** pending
+- **Status:** in_progress
 
 - [ ] **P3.T1: Gate + r-matrix evidence** — covers: AC-5, AC-6
   - [ ] **P3.T1.1:** Full gate green; stills at 393×852, 852×393, 1440×900 showing inline state/cost/reason with zero h-scroll and clean console.
