@@ -21,7 +21,7 @@
 
 | id | title | type | priority | depends_on | track | origin |
 | --- | --- | --- | --- | --- | --- | --- |
-| RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | — | user |
+| RM-16 | Rework mobile ranch hierarchy and make action state, costs, and disabled reasons explicit | refactor | high | RM-13 | 20261128-ranch-hierarchy | user |
 | RM-17 | Reduce repetitive battle-log noise and add pause/replay playback controls | feature | medium | — | — | user |
 | RM-18 | Correct training, move-list, Stable, and Hall of Fame copy inconsistencies | bug | medium | — | — | user |
 | RM-19 | Improve secondary-text contrast, long-form navigation, and modal accessibility | refactor | medium | RM-13 | — | user |
