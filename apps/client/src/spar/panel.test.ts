@@ -12,11 +12,14 @@ import {
   RULE_LABELS,
   type RuleId,
 } from "@apex/sim"
+import { REJECTION_COPY } from "../hud/copy"
 import {
   buildSparPanel,
   type SparPanelSetupRefs,
   type SparSetupSeam,
+  sparChipState,
   sparModalBackground,
+  syncSparChip,
 } from "./panel"
 import { markArmedTactic, refreshPrep } from "./setup"
 
@@ -25,6 +28,7 @@ type Listener = (event: Record<string, unknown>) => void
 class FakeElement {
   children: FakeElement[] = []
   attributes: Record<string, string> = {}
+  dataset: Record<string, string> = {}
   listeners: Record<string, Listener[]> = {}
   disabled = false
   hidden = false
@@ -457,3 +461,77 @@ describe("spar panel internal scroll (FR-4, AC-4)", () => {
     expect(footerRules().length).toBeGreaterThanOrEqual(2)
   })
 })
+
+/**
+ * FR-4/AC-4: the spar chip reads Ready or the exact no-partner reason as
+ * visible text beside its permanent "Free match · no AP" cost line.
+ */
+describe("spar chip inline state (FR-4, AC-4, FR-6)", () => {
+  test("state text covers both partner states and reuses dock rejection copy", () => {
+    expect(sparChipState(true)).toBe("Ready")
+    expect(sparChipState(false)).toBe(
+      `Unavailable · ${REJECTION_COPY["no-creature"]}`,
+    )
+    expect(sparChipState(false)).toContain("No partner yet.")
+  })
+
+  test("syncSparChip paints the line and a machine-readable state", () => {
+    const line = new FakeElement()
+    const button = new FakeElement()
+    syncSparChip(
+      of(button) as unknown as HTMLButtonElement,
+      of(line) as unknown as HTMLElement,
+      false,
+    )
+    expect(line.textContent).toContain("No partner yet.")
+    expect(button.dataset.chipState).toBe("unavailable")
+    syncSparChip(
+      of(button) as unknown as HTMLButtonElement,
+      of(line) as unknown as HTMLElement,
+      true,
+    )
+    expect(line.textContent).toBe("Ready")
+    expect(button.dataset.chipState).toBe("ready")
+  })
+
+  test("the built chip carries the state line without losing cost or gating", () => {
+    const { refs } = build()
+    const chip = refs.sparButton as unknown as FakeElement
+    const state = refs.sparState as unknown as FakeElement
+    expect(chip.classList.contains("spar-button")).toBe(true)
+    expect(chip.classList.contains("kit-chip")).toBe(true)
+    expect(chip.children).toContain(state)
+    expect(state.className).toContain("kit-chip-state")
+    expect(state.textContent).toBe("Ready")
+    expect(chip.dataset.chipState).toBe("ready")
+    // The sub line is the cost's permanent home; the state line is additive.
+    const sub = findByClass(chip, "battle-sub")
+    expect(sub?.textContent).toBe("Free match · no AP")
+    // spar.ts remains the disabled owner: the chip never overrides it.
+    expect(chip.disabled).toBe(false)
+  })
+
+  test("the stylesheet wraps the state line inside the pinned chip", () => {
+    const rule =
+      [...cssFor("spar.css").matchAll(/\.spar-button\s*\{([^}]*)\}/g)]
+        .map((match) => match[1] ?? "")
+        .find((body) => /max-width\s*:/.test(body)) ?? ""
+    expect(rule).toMatch(/max-width\s*:\s*min\(/)
+    const chipRule = cssFor("ui/kit.css")
+    expect(chipRule).toMatch(/\.kit-chip-state\s*\{[^}]*overflow-wrap\s*:\s*anywhere/)
+    expect(chipRule).toMatch(/\.kit-chip-state\s*\{[^}]*font-size\s*:\s*9px/)
+  })
+})
+
+function findByClass(root: FakeElement, token: string): FakeElement | undefined {
+  if (root.className.includes(token)) return root
+  for (const child of root.children) {
+    const hit = findByClass(child, token)
+    if (hit) return hit
+  }
+  return undefined
+}
+
+function cssFor(file: string): string {
+  return readFileSync(join(import.meta.dir, "..", file), "utf8")
+}

@@ -315,6 +315,28 @@
   text-transform: none;
 }
 
+/* FR-4/FR-6: chips carry their state/reason as text, not hover-only chrome.
+   A full-basis child only drops to its own row when the chip wraps; the
+   `:has` guard leaves every chip without a state line untouched. */
+.kit-chip:has(.kit-chip-state) {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.kit-chip-state {
+  display: block;
+  flex: 0 0 100%;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ink-dim);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
 .kit-button-tag {
   grid-area: tag;
   align-self: center;

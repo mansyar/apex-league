@@ -13,10 +13,31 @@ import {
   type ChoiceButton,
   renderSpeedButton,
 } from "../battleUI"
+import { REJECTION_COPY } from "../hud/copy"
 import { icons } from "../ui/icons"
 import { chipButton, crest } from "../ui/kit"
 import { DOCTRINE_LABELS, DOCTRINE_PREVIEWS } from "./copy"
 import type { SparPanelRefs } from "./types"
+
+/**
+ * FR-4: the spar chip's visible state. The broadcast sub already carries the
+ * cost ("Free match · no AP"); the state line adds readiness and, when there
+ * is no partner, the same verbatim rejection copy the dock uses (RM-18 owns
+ * wording).
+ */
+export function sparChipState(hasPartner: boolean): string {
+  return hasPartner ? "Ready" : `Unavailable · ${REJECTION_COPY["no-creature"]}`
+}
+
+/** Paint the chip's state line and its machine-readable mirror. */
+export function syncSparChip(
+  button: HTMLButtonElement,
+  line: HTMLElement,
+  hasPartner: boolean,
+): void {
+  line.textContent = sparChipState(hasPartner)
+  button.dataset.chipState = hasPartner ? "ready" : "unavailable"
+}
 
 /** The rule row's values: no note, or exactly one of the four (FR-13). */
 const RULE_CHOICES = ["none", ...RULE_IDS] as const
@@ -57,6 +78,8 @@ export interface SparPanelSetupRefs extends SparPanelRefs {
   startButton: HTMLButtonElement
   /** Re-name the armed tactic / note after a fresh setup re-arms Press. */
   syncStartFooter: () => void
+  /** The chip's inline state/reason line (FR-4). */
+  sparState: HTMLElement
 }
 
 /** Build the spar's DOM and hand back its writable surfaces. */
@@ -72,6 +95,17 @@ export function buildSparPanel(
     sub: "Free match · no AP",
   })
   sparButton.className = "spar-button kit-chip"
+  const sparState = document.createElement("span")
+  sparState.className = "kit-chip-state"
+  sparButton.append(sparState)
+  syncSparChip(sparButton, sparState, true)
+  // spar.ts owns the authoritative `disabled` flag; the chip mirrors it so
+  // its inline read never disagrees with a gated launch. No sim wiring moves.
+  if (typeof MutationObserver !== "undefined") {
+    new MutationObserver(() => {
+      syncSparChip(sparButton, sparState, !sparButton.disabled)
+    }).observe(sparButton, { attributes: true, attributeFilter: ["disabled"] })
+  }
   root.append(sparButton)
 
   // Center overlay panel, hidden until the whistle. It is a labelled dialog
@@ -260,6 +294,7 @@ export function buildSparPanel(
 
   return {
     sparButton,
+    sparState,
     overlay,
     panel,
     heading,

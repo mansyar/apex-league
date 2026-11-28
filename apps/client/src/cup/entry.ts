@@ -34,6 +34,17 @@ export function createEntry(shared: CupShared): {
       gate: bossForCup(state),
     })
     cupHint.textContent = view.hint
+    // FR-4: the same state read rides inside the chip, so a phone player
+    // sees readiness/reason without a hover. `cup.ts` owns the chip's
+    // construction; create the line once here, lazily, on the first sync.
+    let chipState = cupButton.querySelector<HTMLElement>(".kit-chip-state")
+    if (!chipState) {
+      chipState = document.createElement("span")
+      chipState.className = "kit-chip-state"
+      cupButton.append(chipState)
+    }
+    chipState.textContent = view.state
+    cupButton.dataset.chipState = view.enabled ? "ready" : "unavailable"
     cupButton.classList.toggle("is-hidden", !view.visible)
     cupButton.disabled = !view.enabled
   }

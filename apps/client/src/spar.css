@@ -334,6 +334,12 @@
   color: var(--accent);
 }
 
+/* FR-4/FR-6: the inline state line wraps inside the pinned chip instead of
+   growing it into the viewport edge (393px portrait and landscape). */
+.spar-button {
+  max-width: min(240px, calc(100vw - 28px));
+}
+
 /* Phone tier (F10): the score bug parks in this corner on phones
    (ranch.css), so the spar chip slides beneath it instead of fighting for the
    same pixels — 64px is the bug's top (10px + safe area) plus its measured
