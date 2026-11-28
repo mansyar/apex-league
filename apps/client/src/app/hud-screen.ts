@@ -8,6 +8,7 @@ import {
   clearSave,
   type GameState,
   getSpecies,
+  getTrainingProgram,
   hatchGiftEgg,
   inspectSaveImport,
   markHintSeen,
@@ -22,6 +23,7 @@ import {
 } from "@apex/sim"
 import { careCueForEvent } from "../audio/careCues"
 import type { GraduationFlow } from "../graduation"
+import { growthView } from "../growth"
 import { createHud, type Hud } from "../hud"
 import { morningAfterDebriefGate } from "../hud/copy-morning-after"
 import type { MorningAfterDerivation } from "../morning-after/derive"
@@ -31,12 +33,9 @@ import { announcer } from "../ui/announcer"
 import type { ScreenDeps } from "./screen-deps"
 
 /**
- * The ritual day's one coach debrief (postcup_morning_after FR-6): the
- * banked derivation leads the ticker on the first update that sees it
- * during a sim day — exactly one say, then the routine chain resumes
- * (the ticker holds the line until then). pickDebriefCopy via
- * hud/copy-morning-after is the only copy source; the latch is
- * client-held, so a reload simply finds nothing banked.
+ * postcup_morning_after FR-6: the banked derivation leads the ticker once per
+ * ritual day. pickDebriefCopy is the only copy source; the client-held latch
+ * resets on reload.
  */
 export const withMorningAfterDebrief = (
   hud: Hud,
@@ -63,11 +62,52 @@ export const withMorningAfterDebrief = (
 }
 
 /**
- * The care HUD (composition-root split). `screens.ts` owns the battle screens;
- * the HUD's handler object outgrew the 12 KB module cap on its own, so it lives
- * here — the object itself is unchanged, and `main.ts` still builds it at the
- * boot position the inline object held (after the import modal, before the
- * store fanout).
+ * FR-3/AC-3: eve-of-advance facts from current state only — program, unspent
+ * AP and its dawn reset, ration readiness, growth tally. No predicted budget
+ * or promised evolution; advanceDay settles both.
+ */
+export function advanceSummaryLine(state: GameState): string {
+  const program = state.creature?.trainingProgram
+  const clauses = [
+    program
+      ? `${getTrainingProgram(program).label} assigned for tonight`
+      : "No training assigned for tonight",
+    `${state.actionPoints} AP unspent — resets at dawn`,
+    state.creature?.fedToday
+      ? "Ration served tonight — resets at dawn"
+      : "Ration not served tonight",
+  ]
+  const growth = growthView(state)
+  if (growth && growth.rows.length > 0) {
+    const met = growth.rows.filter((row) => row.met).length
+    clauses.push(`Growth ${met} of ${growth.rows.length} conditions met`)
+  }
+  return clauses.join(" · ")
+}
+
+/**
+ * Paints the summary after the routine update. hud/shell appends the line;
+ * this wrapper is the per-update seam, DOM-guarded for fake-Hud tests.
+ */
+export const withAdvanceSummary = (hud: Hud): Hud => {
+  const routineUpdate = hud.update
+  return {
+    ...hud,
+    update: (state: GameState) => {
+      routineUpdate(state)
+      if (typeof document === "undefined") return
+      const line = document.querySelector<HTMLElement>(".advance-summary")
+      if (line) {
+        const next = advanceSummaryLine(state)
+        if (line.textContent !== next) line.textContent = next
+      }
+    },
+  }
+}
+
+/**
+ * The care HUD (composition-root split): handlers that used to sit inline in
+ * main.ts, kept separate from the battle screens and the store fanout.
  */
 export interface HudScreenDeps extends ScreenDeps {
   graduation: GraduationFlow
@@ -283,5 +323,7 @@ export function createHudScreen(deps: HudScreenDeps): Hud {
   })
 
   // The debrief wrapper above owns the ritual-day say chain (review F4).
-  return withMorningAfterDebrief(hud, () => store.pendingMorningAfter())
+  return withAdvanceSummary(
+    withMorningAfterDebrief(hud, () => store.pendingMorningAfter()),
+  )
 }

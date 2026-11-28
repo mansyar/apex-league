@@ -11,6 +11,7 @@
 import {
   type bossForCup,
   type Creature,
+  CUP_INTERVAL_DAYS,
   type CupSession,
   cupPlacement,
   type DoctrineId,
@@ -28,6 +29,7 @@ import {
   ordinalOf,
   resultRows,
 } from "../bracket-model"
+import { REJECTION_COPY } from "../hud/copy"
 import { TIER_NAME } from "../tier-name"
 import { cupResultCopy } from "../verdict/copy"
 
@@ -190,7 +192,11 @@ export function closeIntent(input: {
 // The Enter Cup chip
 // ---------------------------------------------------------------------
 
-/** The chip's visibility, enablement and hint line. */
+/**
+ * The chip's visibility, enablement, inline state and hint line (FR-4).
+ * `state` is explicit in every case — including the off-day and no-partner
+ * paths — so a hidden chip's reason is still available to tests and callers.
+ */
 export function chipView(input: {
   day: number
   phase: GameState["phase"]
@@ -200,9 +206,9 @@ export function chipView(input: {
   /** The sim's raw gate decision (nulled here while a session is live —
    * with a live session the standing is the honest read). */
   gate: CupGate | null
-}): { visible: boolean; enabled: boolean; hint: string } {
-  const cupToday =
-    isCupDay(input.day) && input.phase === "cup" && input.hasCreature
+}): { visible: boolean; enabled: boolean; hint: string; state: string } {
+  const cupDate = isCupDay(input.day) && input.phase === "cup"
+  const cupToday = cupDate && input.hasCreature
   const resumable = input.hasSession
   const tierName = TIER_NAME[input.ladder.tier]
   const gate = resumable ? null : input.gate
@@ -211,10 +217,20 @@ export function chipView(input: {
       ? "Promotion Cup awaits"
       : `${gate.boss.name} holds the final`
     : `${tierName} ${input.ladder.subTier} · ${input.ladder.points} pts`
+  const nextCupDay =
+    Math.ceil((input.day + 1) / CUP_INTERVAL_DAYS) * CUP_INTERVAL_DAYS
+  const state = resumable
+    ? "Ready · Cup in progress"
+    : cupToday
+      ? "Ready · Cup day"
+      : cupDate
+        ? `Unavailable · ${REJECTION_COPY["no-creature"]}`
+        : `Closed · next on day ${nextCupDay}`
   return {
     visible: cupToday || resumable,
     enabled: cupToday || resumable,
     hint,
+    state,
   }
 }
 

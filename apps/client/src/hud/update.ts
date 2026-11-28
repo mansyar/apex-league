@@ -11,7 +11,7 @@ import {
   REJECTION_COPY,
   stageLabel,
 } from "./copy"
-import { trainButtonState } from "./dock"
+import { careButtonLine, trainButtonState } from "./dock"
 import { seatOverflowBelow, seatRanchFlow } from "./overflow"
 import { conditionDelta, paintLineage, statCell } from "./plates"
 import { paintBranchBadge, paintCrest, paintFormChip } from "./plates-creature"
@@ -64,6 +64,7 @@ export function createHudUpdate(
     trainButton,
     trainName,
     trainCost,
+    trainState,
     picker,
     pickerRows,
     advanceLabel,
@@ -185,6 +186,9 @@ export function createHudUpdate(
       trainCost.textContent = train.cost ?? ""
       trainCost.style.display = train.cost === null ? "none" : ""
     }
+    // The inline line carries the state even when the AP badge is gone: a
+    // same-day re-point reads "Free re-point", a block reads its reason.
+    trainState.textContent = train.line
     trainButton.classList.toggle("is-focus", train.focus)
     dockHeadMeta.textContent = dockHeadTraining(creature.trainingProgram)
 
@@ -240,10 +244,11 @@ export function createHudUpdate(
     statusTicker.say(line)
 
     // Disabled states come from the sim itself — a dry-run careAction is
-    // the single source of truth for why an action can't happen. The
-    // reason explains on hover (kit tooltip), never inside the plate.
+    // the single source of truth for why an action can't happen. FR-1: the
+    // same reason is written inline too, so touch users never need a hover.
     for (const entry of actionButtons) {
       const result = careAction(state, entry.action)
+      entry.state.textContent = careButtonLine(result)
       if (result.ok) {
         entry.button.disabled = false
         entry.button.classList.remove("is-disabled")

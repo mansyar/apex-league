@@ -18,14 +18,17 @@ import {
 } from "@apex/sim"
 import {
   ageLabel,
+  buildStableChip,
   buildStableModal,
   STABLE_EMPTY_COPY,
   type StableModalOptions,
+  stableChipState,
   stableChipVisible,
   stableMeta,
   stableRefusalCopy,
   stableRow,
   stableRows,
+  syncStableChip,
 } from "./stable"
 import { stableRenameRefusalCopy } from "./stable-rename"
 
@@ -140,6 +143,26 @@ describe("stableRefusalCopy", () => {
   })
 })
 
+describe("stableChipState — the chip's inline read (FR-4, AC-4)", () => {
+  test("an empty stable reads empty instead of hiding the chip", () => {
+    expect(stableChipState(stateWith([]))).toBe("Open · Empty")
+  })
+
+  test("waiting pets are counted and named without inventing copies", () => {
+    expect(stableChipState(stateWith([pet()]))).toBe("Open · 1 pet waiting")
+    expect(stableChipState(stateWith([pet(), pet()]))).toBe(
+      "Open · 2 pets waiting",
+    )
+  })
+
+  test("the cup-phase lock reuses the modal's refusal copy verbatim", () => {
+    const state = { ...stateWith([pet()]), phase: "cup" as const }
+    expect(stableChipState(state)).toBe(
+      `Open · 1 pet waiting · ${stableRefusalCopy("cup-phase")}`,
+    )
+  })
+})
+
 describe("the empty stable", () => {
   test("the modal says so in words, never a blank panel", () => {
     expect(STABLE_EMPTY_COPY).toContain("No pets in the stable yet")
@@ -166,6 +189,7 @@ class FakeElement {
   parent: FakeElement | null = null
   readonly children: FakeElement[] = []
   readonly attributes: Record<string, string> = {}
+  readonly dataset: Record<string, string> = {}
   private readonly classNames = new Set<string>()
   private readonly listeners = new Map<string, Listener[]>()
 
@@ -223,6 +247,20 @@ class FakeElement {
 
   querySelectorAll(): FakeElement[] {
     return []
+  }
+
+  querySelector(selector: string): FakeElement | null {
+    for (const child of this.children) {
+      if (
+        selector === ".kit-chip-state" &&
+        child.classList.contains(selector.slice(1))
+      ) {
+        return child
+      }
+      const nested = child.querySelector(selector)
+      if (nested) return nested
+    }
+    return null
   }
 
   /** Deliver `event` to the handlers registered for `type`. */
@@ -432,5 +470,26 @@ describe("stableRenameRefusalCopy", () => {
     for (const reason of ["cup-phase", "unknown-pet"] as const) {
       expect(stableRenameRefusalCopy(reason).length).toBeGreaterThan(0)
     }
+  })
+})
+
+describe("the stable chip's inline state (FR-4, AC-4, FR-6)", () => {
+  test("the chip is built with a state line and stays open", () => {
+    const button = buildStableChip(() => {})
+    const chip = fakeOf(button)
+    expect(chip.classList.contains("stable-chip")).toBe(true)
+    const line = byClass(chip, "kit-chip-state")
+    expect(line.textContent).toBe("Open · Empty")
+    syncStableChip(button, stateWith([pet()]))
+    expect(line.textContent).toBe("Open · 1 pet waiting")
+    expect(chip.dataset.chipState).toBe("open")
+    expect(chip.classList.contains("is-hidden")).toBe(false)
+  })
+
+  test("a cup-phase sync adds the why beside the waiting count", () => {
+    const button = buildStableChip(() => {})
+    syncStableChip(button, { ...stateWith([pet()]), phase: "cup" as const })
+    const line = byClass(fakeOf(button), "kit-chip-state")
+    expect(line.textContent).toContain(stableRefusalCopy("cup-phase"))
   })
 })

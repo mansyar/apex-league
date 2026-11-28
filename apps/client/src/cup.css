@@ -925,6 +925,12 @@
   color: var(--accent);
 }
 
+/* FR-4/FR-6: the inline state line wraps inside the pinned chip instead of
+   growing it into the viewport edge (393px portrait and landscape). */
+.cup-button {
+  max-width: min(240px, calc(100vw - 28px));
+}
+
 .cup-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;

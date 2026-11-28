@@ -309,6 +309,7 @@ describe("chipView — the Enter Cup chip", () => {
     expect(view.visible).toBe(true)
     expect(view.enabled).toBe(true)
     expect(view.hint).toBe("Bronze III · 0 pts")
+    expect(view.state).toBe("Ready · Cup day")
   })
 
   test("a pending gate boss names the occasion", () => {
@@ -321,6 +322,7 @@ describe("chipView — the Enter Cup chip", () => {
       gate,
     })
     expect(view.hint).toBe("Verdant Dame Hesse holds the final")
+    expect(view.state).toBe("Ready · Cup day")
   })
 
   test("a promotion gate reads as the gate it is", () => {
@@ -336,6 +338,7 @@ describe("chipView — the Enter Cup chip", () => {
       },
     })
     expect(view.hint).toBe("Promotion Cup awaits")
+    expect(view.state).toBe("Ready · Cup day")
   })
 
   test("a resumable session suppresses the gate and keeps the chip alive", () => {
@@ -350,9 +353,10 @@ describe("chipView — the Enter Cup chip", () => {
     expect(view.visible).toBe(true)
     expect(view.enabled).toBe(true)
     expect(view.hint).toBe("Bronze III · 0 pts")
+    expect(view.state).toBe("Ready · Cup in progress")
   })
 
-  test("no cup today and no session: chip hidden and disabled", () => {
+  test("no cup today and no session: chip hidden and disabled, reason explicit", () => {
     const view = chipView({
       day: 3,
       phase: "day",
@@ -363,6 +367,34 @@ describe("chipView — the Enter Cup chip", () => {
     })
     expect(view.visible).toBe(false)
     expect(view.enabled).toBe(false)
+    expect(view.state).toBe("Closed · next on day 7")
+  })
+
+  test("cup day without a partner: gated, with the verbatim no-partner reason", () => {
+    const view = chipView({
+      day: CUP_DAY,
+      phase: "cup",
+      hasCreature: false,
+      ladder,
+      hasSession: false,
+      gate: null,
+    })
+    expect(view.visible).toBe(false)
+    expect(view.enabled).toBe(false)
+    expect(view.state).toContain("No partner yet.")
+  })
+
+  test("off-day state names the next cup for any day in the cycle", () => {
+    const view = chipView({
+      day: 13,
+      phase: "day",
+      hasCreature: true,
+      ladder,
+      hasSession: false,
+      gate: null,
+    })
+    expect(view.state).toBe("Closed · next on day 14")
+    expect(view.hint).toBe("Bronze III · 0 pts")
   })
 })
 

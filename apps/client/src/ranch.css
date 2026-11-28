@@ -1092,6 +1092,40 @@
   width: 100%;
 }
 
+/* FR-5: a keyline separates the care-row group from the training group, and
+   the single Advance CTA keeps the only solid accent fill. DOM order is
+   frozen — grouping is expressed with borders/emphasis, never by moving a
+   button. */
+.command-dock .dock-train {
+  border-top: 1px solid var(--kit-keyline);
+  padding-top: 8px;
+}
+
+.dock-row .kit-button,
+.dock-train .kit-button,
+.dock-graduate .kit-button {
+  background: rgb(255 236 200 / 0.04);
+}
+
+.command-dock .kit-cta {
+  background: var(--accent);
+}
+
+/* FR-3/AC-3: the eve-of-advance facts sit under the primary CTA. The
+   divider groups it with Advance Day without moving any action. */
+.advance-summary {
+  margin: 6px 2px 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--kit-keyline);
+  color: var(--ink-dim);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
 .command-dock.is-collapsed .dock-row,
 .command-dock.is-collapsed .dock-train,
 .command-dock.is-collapsed .dock-graduate,
@@ -1163,6 +1197,12 @@
 
 .hud-overflow.is-hidden {
   display: none;
+}
+
+/* FR-4/FR-6: the stable chip's inline refusal/count line wraps inside the
+   folded panel instead of widening it past the phone viewport. */
+.stable-chip {
+  max-width: min(260px, calc(100vw - 28px));
 }
 
 .hud-motion .kit-chip,

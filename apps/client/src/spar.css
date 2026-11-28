@@ -327,6 +327,8 @@
   align-items: center;
   gap: 8px;
   text-align: left;
+  /* FR-4/FR-6: the inline state line wraps instead of widening the chip. */
+  max-width: min(240px, calc(100vw - 28px));
   animation: settle-down 0.5s var(--kit-settle) 0.24s both;
 }
 

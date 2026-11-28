@@ -127,6 +127,22 @@ export function stableRefusalCopy(reason: StableReason): string {
 }
 
 /**
+ * FR-4: the stable chip's inline read. It is always open; the counts are the
+ * real stable contents, and a cup-phase lock reuses the modal's refusal copy
+ * verbatim instead of inventing a second explanation.
+ */
+export function stableChipState(state: GameState): string {
+  const waiting = state.stable.length
+  const count =
+    waiting === 0
+      ? "Empty"
+      : `${waiting} ${waiting === 1 ? "pet" : "pets"} waiting`
+  const lock =
+    state.phase === "cup" ? ` · ${stableRefusalCopy("cup-phase")}` : ""
+  return `Open · ${count}${lock}`
+}
+
+/**
  * The Stable chip: it sits beside Settings and Handbook and is always there —
  * the stable is worth a look even when it is empty (FR-9).
  */
@@ -134,6 +150,10 @@ export function buildStableChip(onOpen: () => void): HTMLButtonElement {
   const button = chip({ label: "Stable", variant: "dim", onClick: onOpen })
   button.classList.add("stable-chip")
   button.title = "Stable"
+  const line = document.createElement("span")
+  line.className = "kit-chip-state"
+  line.textContent = "Open · Empty"
+  button.append(line)
   return button
 }
 
@@ -146,6 +166,14 @@ export function syncStableChip(
   state: GameState,
 ): void {
   button.classList.toggle("is-hidden", !stableChipVisible(state))
+  let line = button.querySelector<HTMLElement>(".kit-chip-state")
+  if (!line) {
+    line = document.createElement("span")
+    line.className = "kit-chip-state"
+    button.append(line)
+  }
+  line.textContent = stableChipState(state)
+  button.dataset.chipState = "open"
 }
 
 export interface StableModal {

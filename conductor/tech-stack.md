@@ -901,6 +901,19 @@
   green; spar + ghost r-matrix stills live under the track's
   `verification/`.
 
+- `2026-11-28` — **Ranch inline state lines** (`20261128-ranch-hierarchy`):
+  dock care/train buttons and spar/cup/stable chips now paint state, cost
+  and disabled reason as persistent visible text (`careButtonLine()` and
+  `trainButtonState().line` in `hud/dock.ts`, `sparChipState()` in
+  `spar/panel.ts`, additive `chipView().state` in `cup/view-models.ts`,
+  `stableChipState()` in `stable.ts`) rendered through `.kit-button-state`
+  / `.kit-chip-state` lines (wrapping, viewport-capped) instead of
+  hover-only tooltips; wording reuses `REJECTION_COPY` / refusal copy
+  verbatim. Advance Day carries an eve-of-advance `p.advance-summary`
+  (`advanceSummaryLine()` in `app/hud-screen.ts`, current facts only —
+  never predicts budgets or evolutions). Grouping is borders/emphasis
+  with frozen DOM order; full gate + 393x852/852x393/1440x900 matrix green.
+
 ## Quality Gates
 - `bun check` clean, `biome check` clean, `bun test` green — required before
   any commit lands (see workflow.md).
